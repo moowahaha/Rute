@@ -7,4 +7,8 @@ describe Rute::Environment::Request do
   it 'should set a path' do
     Rute::Environment::Request.new('REQUEST_PATH' => '/').path.should == '/'
   end
+
+  it 'should have a request method' do
+    Rute::Environment::Request.new('REQUEST_METHOD' => 'POST').method.should == :post
+  end
 end

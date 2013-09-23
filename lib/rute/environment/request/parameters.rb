@@ -11,7 +11,11 @@ class Rute
         end
 
         def [] parameter
-          @parameter_hash[parameter.to_sym]
+          @parameter_hash[parameter]
+        end
+
+        def []= parameter, value
+          @parameter_hash[parameter] = value
         end
       end
     end

@@ -1,9 +1,10 @@
 describe Rute::Router do
   it 'should route a request' do
-    response = double(Rute::Environment::Response)
-    response.should_receive(:path).and_return('/reverse')
+    request = double(Rute::Environment::Request)
+    request.should_receive(:path).and_return('/reverse')
+    request.should_receive(:method).and_return(:get)
     environment = double(Rute::Environment)
-    environment.should_receive(:request).and_return(response)
+    environment.should_receive(:request).and_return(request)
     Rute::Environment.should_receive(:new).with(
         'REQUEST_PATH' => '/reverse',
         'HTTP_ACCEPT' => 'text/html',

@@ -12,7 +12,7 @@ describe Rute::Application do
   end
 
   it 'should route a request with url parameters' do
-    @rute.on.get '/reverse/:string', class_name: 'Echo', method: 'reverse'
-    Rute::TestHelper.new(@rute).get(path: '/reverse/hello%20there').body.should == 'ereht olleh'
+    @rute.on.get '/concatenate/:string1/:string2', class_name: 'Echo', method: 'concatenate'
+    Rute::TestHelper.new(@rute).get(path: '/concatenate/hello there/to you').body.should == 'hello there to you'
   end
 end
