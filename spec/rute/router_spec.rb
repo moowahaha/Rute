@@ -15,4 +15,10 @@ describe Rute::Router do
 
     router.handler_for(environment).should == handler
   end
+
+  # TODO: 404 when no handler
+  # TODO: should parse complex paths
+  # TODO: post request method
+  # TODO: duplicate routing rule
+  # TODO: content-type magic
 end

@@ -24,7 +24,6 @@ class Rute
         break
       end
 
-      # TODO: 404 when no handler
       raise 'no pattern' unless handler
 
       handler.environment = environment
