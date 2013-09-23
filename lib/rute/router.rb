@@ -39,12 +39,7 @@ class Rute
       request_method_patterns = @handler_patterns[request.method]
       return [] if !request_method_patterns
 
-      type_specific_handlers = []
-      request.content_type.split(',').each do |content_type|
-        type_specific_handlers << request_method_patterns[content_type] if request_method_patterns[content_type]
-      end
-
-      (type_specific_handlers + request_method_patterns[nil]).flatten
+      ((request_method_patterns[request.content_type] || []) + (request_method_patterns[nil] || [])).flatten
     end
 
     def assign_handler request_method, request_path, class_name, method, content_type

@@ -5,7 +5,7 @@ describe Rute::TestHelper do
     before do
       application = double(Rute::Application)
       application.should_receive(:call).with(
-          'QUERY_STRING' => 'sup=%3F%2F%21', 'REQUEST_PATH' => '/', 'HTTP_ACCEPT' => 'whatevs', 'REQUEST_METHOD' => 'GET'
+          'QUERY_STRING' => 'sup=%3F%2F%21', 'SCRIPT_NAME' => '/', 'HTTP_ACCEPT' => 'whatevs', 'REQUEST_METHOD' => 'GET'
       ).and_return(
           [200, {'Content-Type' => 'whatevs'}, 'some response body']
       )

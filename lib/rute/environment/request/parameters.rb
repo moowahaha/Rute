@@ -2,11 +2,11 @@ class Rute
   class Environment
     class Request
       class Parameters
-        def initialize query_string
+        def initialize parameters
           @parameter_hash = {}
 
-          Rack::Utils.parse_nested_query(query_string).each do |key, value|
-            @parameter_hash[key.to_sym] = value
+          parameters.each do |k, v|
+            @parameter_hash[k.to_sym] = v
           end
         end
 

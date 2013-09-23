@@ -15,7 +15,7 @@ class Rute
     def build_env path, parameters, content_type, request_method
       {
           'QUERY_STRING' => URI.encode_www_form(parameters.map {|k, v| [k, v]}),
-          'REQUEST_PATH' => path,
+          'SCRIPT_NAME' => path,
           'HTTP_ACCEPT' => content_type,
           'REQUEST_METHOD' => request_method
       }

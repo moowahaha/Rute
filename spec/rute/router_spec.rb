@@ -1,7 +1,7 @@
 describe Rute::Router do
   it 'should route a get request' do
     environment = Rute::Environment.new(
-        'REQUEST_PATH' => '/reverse',
+        'SCRIPT_NAME' => '/reverse',
         'HTTP_ACCEPT' => 'text/html',
         'REQUEST_METHOD' => 'GET'
     )
@@ -19,7 +19,7 @@ describe Rute::Router do
     router.get '/reverse/:string_in_url', class_name: 'Echo', method: 'reverse'
 
     environment = Rute::Environment.new(
-        'REQUEST_PATH' => '/reverse/something',
+        'SCRIPT_NAME' => '/reverse/something',
         'HTTP_ACCEPT' => 'text/html',
         'QUERY_STRING' => 'string_in_query=somethingelse',
         'REQUEST_METHOD' => 'GET'
@@ -39,8 +39,8 @@ describe Rute::Router do
 
     it 'should apply the most specific route' do
       environment = Rute::Environment.new(
-          'REQUEST_PATH' => '/reverse',
-          'HTTP_ACCEPT' => 'application/json,text/x-json',
+          'SCRIPT_NAME' => '/reverse',
+          'CONTENT_TYPE' => 'application/json',
           'REQUEST_METHOD' => 'GET'
       )
 
@@ -49,8 +49,8 @@ describe Rute::Router do
 
     it 'should use a fallback when supplied' do
       environment = Rute::Environment.new(
-          'REQUEST_PATH' => '/reverse',
-          'HTTP_ACCEPT' => 'text/html',
+          'SCRIPT_NAME' => '/reverse',
+          'CONTENT_TYPE' => 'text/html',
           'REQUEST_METHOD' => 'GET'
       )
 
@@ -59,8 +59,8 @@ describe Rute::Router do
 
     it 'should respond with the appropriate content type' do
       environment = Rute::Environment.new(
-          'REQUEST_PATH' => '/reverse',
-          'HTTP_ACCEPT' => 'application/json,text/x-json',
+          'SCRIPT_NAME' => '/reverse',
+          'CONTENT_TYPE' => 'application/json',
           'REQUEST_METHOD' => 'GET'
       )
 
@@ -70,8 +70,7 @@ describe Rute::Router do
 
     it 'should have a default value' do
       environment = Rute::Environment.new(
-          'REQUEST_PATH' => '/reverse',
-          'HTTP_ACCEPT' => 'text/html',
+          'SCRIPT_NAME' => '/reverse',
           'REQUEST_METHOD' => 'GET'
       )
 

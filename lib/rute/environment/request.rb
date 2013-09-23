@@ -6,10 +6,12 @@ class Rute
       attr_reader :parameters, :path, :method, :content_type
 
       def initialize raw_environment
-        @parameters = Rute::Environment::Request::Parameters.new(raw_environment['QUERY_STRING'])
-        @path = raw_environment['REQUEST_PATH']
-        @method = (raw_environment['REQUEST_METHOD'] || '').downcase.to_sym
-        @content_type = (raw_environment['HTTP_ACCEPT'] || '').downcase
+        raw_environment['rack.input'] ||= StringIO.new
+        rack_request = Rack::Request.new raw_environment
+        @parameters = Rute::Environment::Request::Parameters.new(rack_request.params)
+        @path = rack_request.path
+        @method = (rack_request.request_method || '').downcase.to_sym
+        @content_type = (rack_request.content_type || '').downcase
       end
     end
   end
