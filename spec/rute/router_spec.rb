@@ -81,6 +81,8 @@ describe Rute::Router do
   end
 
   # TODO: 404 when no handler
+  # TODO: error callbacks
+  # TODO: ensure error callbacks are called when something goes wrong
   # TODO: should parse complex paths
   # TODO: post request method
   # TODO: duplicate routing rule
