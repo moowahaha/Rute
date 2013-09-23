@@ -2,9 +2,8 @@ require 'rack'
 
 class Rute
   class Application
-    def initialize configuration: raise('configuration is required'), router: raise('router is required')
+    def initialize router
       @router = router
-      @configuration = configuration
     end
 
     def call env

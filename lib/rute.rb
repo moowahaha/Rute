@@ -11,11 +11,11 @@ class Rute
 
   def initialize
     @set = Rute::Configuration.new
-    @on = Rute::Router.new
+    @on = Rute::Router.new @set
   end
 
   def application
-    Rute::Application.new configuration: @set, router: @on
+    Rute::Application.new @on
   end
 end
 

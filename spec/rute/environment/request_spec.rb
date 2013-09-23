@@ -11,4 +11,8 @@ describe Rute::Environment::Request do
   it 'should have a request method' do
     Rute::Environment::Request.new('REQUEST_METHOD' => 'POST').method.should == :post
   end
+
+  it 'should have a downcased content type' do
+    Rute::Environment::Request.new('HTTP_ACCEPT' => 'TEXT/HTML').content_type.should == 'text/html'
+  end
 end

@@ -6,7 +6,7 @@ class Rute
 
       def initialize
         @status = Rute::OK
-        @headers = {'Content-Type' => 'text/html'}
+        @headers = {}
         @body = ''
       end
 
