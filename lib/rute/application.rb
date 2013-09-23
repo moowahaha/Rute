@@ -8,7 +8,7 @@ class Rute
     end
 
     def call env
-      handler = @router.handler_for env
+      handler = @router.handler_for Rute::Environment.new env
       handler.invoke!
       response = handler.environment.response
       [response.status, response.headers, response.body]

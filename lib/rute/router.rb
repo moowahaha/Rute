@@ -8,8 +8,7 @@ class Rute
       assign_handler :get, request_path, class_name, method
     end
 
-    def handler_for env
-      environment = Rute::Environment.new env
+    def handler_for environment
       request = environment.request
       path = clean_path(request.path)
       handler = nil
