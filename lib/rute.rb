@@ -11,11 +11,15 @@ class Rute
 
   def initialize
     @set = Rute::Configuration.new
+    @set.project_root = File.dirname(caller_locations(1, 1)[0].path)
     @on = Rute::Router.new @set
   end
 
   def application
-    Rute::Application.new @on
+    files = Rute::Files.new @set
+    files.load!
+    @on.compile!
+    Rute::Application.new @on, files
   end
 end
 

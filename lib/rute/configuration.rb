@@ -1,26 +1,18 @@
 class Rute
   class Configuration
-    attr_accessor :default_content_type
+    attr_accessor :default_content_type, :detect_file_changes, :load_paths, :static_paths, :project_root
 
     def initialize
+      @project_root = nil
+      @detect_file_changes = false
       @default_content_type = 'text/html'
+      @load_paths = %w{.}
+      @static_paths = %w{.}
     end
 
-    def static_paths= paths = []
-      # TODO: this
-    end
-
-    def load_paths= paths = []
-      caller_path = File.dirname(caller_locations(1, 1)[0].path)
-      paths.each do |path|
-        dir = File.join(caller_path, path)
-        raise "No such directory #{path} in #{caller_path}" unless Dir.exist?(dir)
-        $:.unshift dir
-
-        Dir.glob(File.join(dir, '**', '*.rb')) do |file|
-          require file
-        end
-      end
+    def project_root
+      raise "project_root not set" unless @project_root
+      @project_root
     end
   end
 end

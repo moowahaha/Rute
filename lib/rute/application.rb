@@ -2,8 +2,9 @@ require 'rack'
 
 class Rute
   class Application
-    def initialize router
+    def initialize router, files
       @router = router
+      @files = files
     end
 
     def call env

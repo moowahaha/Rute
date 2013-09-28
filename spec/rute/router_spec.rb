@@ -1,4 +1,12 @@
 describe Rute::Router do
+  before do
+    configuration = Rute::Configuration.new
+    configuration.project_root = File.join($SPEC_ROOT, 'fixtures')
+    files = Rute::Files.new configuration
+    files.load!
+    @router = Rute::Router.new configuration
+  end
+
   it 'should route a get request' do
     environment = Rute::Environment.new(
         'SCRIPT_NAME' => '/reverse',
@@ -6,17 +14,17 @@ describe Rute::Router do
         'REQUEST_METHOD' => 'GET'
     )
 
-    router = Rute::Router.new Rute::Configuration.new
-    router.get '/reverse', class_name: 'Echo', method: 'reverse'
+    @router.get '/reverse', class_name: 'Echo', method: 'reverse'
+    @router.compile!
 
-    handler = router.handler_for(environment)
+    handler = @router.handler_for(environment)
     handler.method.should == 'reverse'
     handler.class_name.should == 'Echo'
   end
 
   it 'should setup environment with request parameters' do
-    router = Rute::Router.new Rute::Configuration.new
-    router.get '/reverse/:string_in_url', class_name: 'Echo', method: 'reverse'
+    @router.get '/reverse/:string_in_url', class_name: 'Echo', method: 'reverse'
+    @router.compile!
 
     environment = Rute::Environment.new(
         'SCRIPT_NAME' => '/reverse/something',
@@ -25,16 +33,16 @@ describe Rute::Router do
         'REQUEST_METHOD' => 'GET'
     )
 
-    router.handler_for(environment)
+    @router.handler_for(environment)
     environment.request.parameters[:string_in_url].should == 'something'
     environment.request.parameters[:string_in_query].should == 'somethingelse'
   end
 
   describe 'content types' do
     before do
-      @router = Rute::Router.new Rute::Configuration.new
       @router.get '/reverse', class_name: 'Echo', method: 'reverse_with_json', content_type: 'application/json'
       @router.get '/reverse', class_name: 'Echo', method: 'reverse_with_anything'
+      @router.compile!
     end
 
     it 'should apply the most specific route' do

@@ -3,10 +3,17 @@ class Rute
     def initialize configuration
       @configuration = configuration
       @handler_patterns = {}
+      @routes = {}
     end
 
-    def get request_path, class_name: raise('class_name is required'), method: raise('method is required'), content_type: nil
-      assign_handler :get, request_path, class_name, method, content_type
+    def get(request_path, class_name: raise('class_name is required'), method: raise('method is required'), content_type: nil)
+      add_route :get, {
+          request_path: request_path,
+          class_name: class_name,
+          method: method,
+          content_type: content_type,
+          defined_at: caller(1, 1)
+      }
     end
 
     def handler_for environment
@@ -33,21 +40,22 @@ class Rute
       handler
     end
 
-    private
-
-    def candidate_handlers_for request
-      request_method_patterns = @handler_patterns[request.method]
-      return [] if !request_method_patterns
-
-      ((request_method_patterns[request.content_type] || []) + (request_method_patterns[nil] || [])).flatten
+    def compile!
+      @routes.each do |request_method, routes|
+        routes.each do |route|
+          compile_handler_pattern request_method, route
+        end
+      end
     end
 
-    def assign_handler request_method, request_path, class_name, method, content_type
-      content_type.downcase unless content_type.nil?
+    private
+
+    def compile_handler_pattern(request_method, route)
+      content_type = route[:content_type].downcase if route[:content_type]
 
       # TODO: detect duplicate patterns
       parsable_path = []
-      clean_path(request_path).split('/').each do |part|
+      clean_path(route[:request_path]).split('/').each do |part|
         part = part.index(':') == 0 ? part_to_regexp(part.sub(/^:/, '')) : part
         parsable_path << part
       end
@@ -56,9 +64,24 @@ class Rute
       @handler_patterns[request_method][content_type] ||= []
       @handler_patterns[request_method][content_type] << {
           pattern: Regexp.new(parsable_path.join('/')),
-          handler: Rute::Handler.new(class_name: class_name, method: method),
+          handler: Rute::Handler.new(
+              class_name: route[:class_name],
+              method: route[:method]
+          ),
           content_type: content_type
       }
+    end
+
+    def add_route request_method, route
+      @routes[request_method] ||= []
+      @routes[request_method] << route
+    end
+
+    def candidate_handlers_for request
+      request_method_patterns = @handler_patterns[request.method]
+      return [] if !request_method_patterns
+
+      ((request_method_patterns[request.content_type] || []) + (request_method_patterns[nil] || [])).flatten
     end
 
     def part_to_regexp variable

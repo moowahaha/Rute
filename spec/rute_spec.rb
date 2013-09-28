@@ -1,9 +1,9 @@
 require 'spec_helper'
 
-describe Rute::Application do
+describe Rute do
   before do
     @rute = Rute.new
-    @rute.set.load_paths = [File.join('..', 'fixtures')]
+    @rute.set.load_paths = [File.join('fixtures', 'test_classes')]
   end
 
   it 'should route a request with cgi parameters' do
