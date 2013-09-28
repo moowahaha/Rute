@@ -11,8 +11,7 @@ class Rute
           request_path: request_path,
           class_name: class_name,
           method: method,
-          content_type: content_type,
-          defined_at: caller(1, 1)
+          content_type: content_type
       }
     end
 
@@ -55,24 +54,36 @@ class Rute
 
       # TODO: detect duplicate patterns
       parsable_path = []
+      path_identifier = []
       clean_path(route[:request_path]).split('/').each do |part|
-        part = part.index(':') == 0 ? part_to_regexp(part.sub(/^:/, '')) : part
-        parsable_path << part
+        parsable_part = part.index(':') == 0 ? part_to_regexp(part.sub(/^:/, '')) : part
+        identifiable_part = part.index(':') == 0 ? ':PARAMETER' : part
+
+        parsable_path << parsable_part
+        path_identifier << identifiable_part
       end
 
       @handler_patterns[request_method] ||= {}
       @handler_patterns[request_method][content_type] ||= []
+
+      check_for_duplicate! @handler_patterns[request_method][content_type], route[:defined_at], path_identifier
+
       @handler_patterns[request_method][content_type] << {
           pattern: Regexp.new(parsable_path.join('/')),
           handler: Rute::Handler.new(
               class_name: route[:class_name],
               method: route[:method]
           ),
-          content_type: content_type
+          content_type: content_type,
+          defined_at: route[:defined_at],
+          identifier: path_identifier
       }
     end
 
     def add_route request_method, route
+      caller = caller_locations(2, 2)[0]
+      route[:defined_at] = "#{caller.absolute_path}:#{caller.lineno}"
+
       @routes[request_method] ||= []
       @routes[request_method] << route
     end
@@ -90,6 +101,17 @@ class Rute
 
     def clean_path path
       path.gsub(/\/$/, '')
+    end
+
+    def check_for_duplicate! previous, defined_at, identifier
+      duplicate_route = previous.select do |possible_duplicate|
+        identifier == possible_duplicate[:identifier]
+      end.first
+
+      raise(
+          Rute::Exception::DuplicateRoute,
+          "Duplicate paths defined on #{duplicate_route[:defined_at]} and  #{defined_at}"
+      ) if duplicate_route
     end
   end
 end

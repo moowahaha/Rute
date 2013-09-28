@@ -38,6 +38,12 @@ describe Rute::Router do
     environment.request.parameters[:string_in_query].should == 'somethingelse'
   end
 
+  it 'should cope with duplicate routes' do
+    @router.get '/reverse/:string_in_url', class_name: 'Echo', method: 'will never happen'
+    @router.get '/reverse/:string_in_url', class_name: 'Echo', method: 'will never happen also'
+    expect {@router.compile!}.to raise_error(Rute::Exception::DuplicateRoute)
+  end
+
   describe 'content types' do
     before do
       @router.get '/reverse', class_name: 'Echo', method: 'reverse_with_json', content_type: 'application/json'
@@ -92,6 +98,5 @@ describe Rute::Router do
   # TODO: ensure error callbacks are called when something goes wrong
   # TODO: should parse complex paths
   # TODO: post request method
-  # TODO: duplicate routing rule
   # TODO: make the rule definition available to called code for debug purposes
 end
