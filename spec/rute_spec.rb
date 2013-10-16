@@ -16,3 +16,5 @@ describe Rute do
     Rute::TestHelper.new(@rute).get(path: '/concatenate/hello there/to you').body.should == 'hello there to you'
   end
 end
+
+# TODO: 404 when no handler

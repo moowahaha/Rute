@@ -39,8 +39,8 @@ describe Rute::Router do
   end
 
   it 'should cope with duplicate routes' do
-    @router.get '/reverse/:string_in_url', class_name: 'Echo', method: 'will never happen'
-    @router.get '/reverse/:string_in_url', class_name: 'Echo', method: 'will never happen also'
+    @router.get '/reverse/:string_in_url', class_name: 'Echo', method: 'reverse'
+    @router.get '/reverse/:string_in_url', class_name: 'Echo', method: 'reverse'
     expect {@router.compile!}.to raise_error(Rute::Exception::DuplicateRoute)
   end
 
@@ -48,9 +48,6 @@ describe Rute::Router do
     before do
       @router.get '/reverse', class_name: 'Echo', method: 'reverse_with_json', content_type: 'application/json'
       @router.get '/reverse', class_name: 'Echo', method: 'reverse_with_anything'
-      @router.post '/reverse', class_name: 'Echo', method: 'reverse_with_anything_as_a_post'
-      @router.put '/reverse', class_name: 'Echo', method: 'reverse_with_anything_as_a_put'
-      @router.delete '/reverse', class_name: 'Echo', method: 'reverse_with_anything_as_a_delete'
       @router.compile!
     end
 
@@ -95,6 +92,27 @@ describe Rute::Router do
       environment.response.headers['Content-Type'].should == 'text/html'
     end
 
+  end
+
+  describe 'verbs' do
+    before do
+      @router.get '/reverse', class_name: 'Echo', method: 'some_get_method'
+      @router.post '/reverse', class_name: 'Echo', method: 'some_post_method'
+      @router.put '/reverse', class_name: 'Echo', method: 'some_put_method'
+      @router.delete '/reverse', class_name: 'Echo', method: 'some_delete_method'
+      @router.compile!
+    end
+
+    it 'should get on GET request' do
+      environment = Rute::Environment.new(
+          'SCRIPT_NAME' => '/reverse',
+          'CONTENT_TYPE' => 'application/json',
+          'REQUEST_METHOD' => 'GET'
+      )
+
+      @router.handler_for(environment).method.should == 'some_get_method'
+    end
+
     it 'should post on POST request' do
       environment = Rute::Environment.new(
           'SCRIPT_NAME' => '/reverse',
@@ -102,7 +120,7 @@ describe Rute::Router do
           'REQUEST_METHOD' => 'POST'
       )
 
-      @router.handler_for(environment).method.should == 'reverse_with_anything_as_a_post'
+      @router.handler_for(environment).method.should == 'some_post_method'
     end
 
     it 'should put on PUT request' do
@@ -112,7 +130,7 @@ describe Rute::Router do
           'REQUEST_METHOD' => 'PUT'
       )
 
-      @router.handler_for(environment).method.should == 'reverse_with_anything_as_a_put'
+      @router.handler_for(environment).method.should == 'some_put_method'
     end
 
     it 'should delete on DELETE request' do
@@ -122,13 +140,31 @@ describe Rute::Router do
           'REQUEST_METHOD' => 'DELETE'
       )
 
-      @router.handler_for(environment).method.should == 'reverse_with_anything_as_a_delete'
+      @router.handler_for(environment).method.should == 'some_delete_method'
     end
   end
 
-  # TODO: 404 when no handler
+  describe 'non-existent destinations' do
+    it 'should deal with a non-existent class' do
+      expect do
+        @router.get '/reverse', class_name: 'DoesNotExist', method: 'who_cares'
+      end.to raise_error(NameError)
+    end
+
+    it 'should deal with a non-existent method' do
+      expect do
+        @router.get '/reverse', class_name: 'Echo', method: 'does_not_exist'
+      end.to raise_error(NameError)
+    end
+
+    it 'should deal with a method does not accept 2 parameter' do
+      expect do
+        @router.get '/reverse', class_name: 'Echo', method: 'method_with_too_few_parameters'
+      end.to raise_error(ArgumentError)
+    end
+  end
+
   # TODO: error callbacks
   # TODO: ensure error callbacks are called when something goes wrong
-  # TODO: post request method
   # TODO: make the rule definition available to called code for debug purposes
 end

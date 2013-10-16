@@ -111,6 +111,8 @@ class Rute
       caller = caller_locations(2, 2)[0]
       route[:defined_at] = "#{caller.absolute_path}:#{caller.lineno}"
 
+      assert_route route
+
       @routes[request_method] ||= []
       @routes[request_method] << route
     end
@@ -139,6 +141,14 @@ class Rute
           Rute::Exception::DuplicateRoute,
           "Duplicate paths defined on #{duplicate_route[:defined_at]} and  #{defined_at}"
       ) if duplicate_route
+    end
+
+    def assert_route route
+      klass = Module.const_get(route[:class_name])
+      method = klass.instance_method(route[:method])
+      if (method.parameters & [[:req, :request], [:req, :response]]).length != 2
+        raise ArgumentError.new("`does_not_exist' for class `Echo' expects to receive 2 arguments: request & response")
+      end
     end
   end
 end
