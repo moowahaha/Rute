@@ -15,6 +15,33 @@ class Rute
       }
     end
 
+    def post(request_path, class_name: raise('class_name is required'), method: raise('method is required'), content_type: nil)
+      add_route :post, {
+          request_path: request_path,
+          class_name: class_name,
+          method: method,
+          content_type: content_type
+      }
+    end
+
+    def put(request_path, class_name: raise('class_name is required'), method: raise('method is required'), content_type: nil)
+      add_route :put, {
+          request_path: request_path,
+          class_name: class_name,
+          method: method,
+          content_type: content_type
+      }
+    end
+
+    def delete(request_path, class_name: raise('class_name is required'), method: raise('method is required'), content_type: nil)
+      add_route :delete, {
+          request_path: request_path,
+          class_name: class_name,
+          method: method,
+          content_type: content_type
+      }
+    end
+
     def handler_for environment
       request = environment.request
       path = clean_path(request.path)

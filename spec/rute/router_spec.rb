@@ -48,6 +48,9 @@ describe Rute::Router do
     before do
       @router.get '/reverse', class_name: 'Echo', method: 'reverse_with_json', content_type: 'application/json'
       @router.get '/reverse', class_name: 'Echo', method: 'reverse_with_anything'
+      @router.post '/reverse', class_name: 'Echo', method: 'reverse_with_anything_as_a_post'
+      @router.put '/reverse', class_name: 'Echo', method: 'reverse_with_anything_as_a_put'
+      @router.delete '/reverse', class_name: 'Echo', method: 'reverse_with_anything_as_a_delete'
       @router.compile!
     end
 
@@ -91,12 +94,41 @@ describe Rute::Router do
       @router.handler_for(environment)
       environment.response.headers['Content-Type'].should == 'text/html'
     end
+
+    it 'should post on POST request' do
+      environment = Rute::Environment.new(
+          'SCRIPT_NAME' => '/reverse',
+          'CONTENT_TYPE' => 'application/json',
+          'REQUEST_METHOD' => 'POST'
+      )
+
+      @router.handler_for(environment).method.should == 'reverse_with_anything_as_a_post'
+    end
+
+    it 'should put on PUT request' do
+      environment = Rute::Environment.new(
+          'SCRIPT_NAME' => '/reverse',
+          'CONTENT_TYPE' => 'application/json',
+          'REQUEST_METHOD' => 'PUT'
+      )
+
+      @router.handler_for(environment).method.should == 'reverse_with_anything_as_a_put'
+    end
+
+    it 'should delete on DELETE request' do
+      environment = Rute::Environment.new(
+          'SCRIPT_NAME' => '/reverse',
+          'CONTENT_TYPE' => 'application/json',
+          'REQUEST_METHOD' => 'DELETE'
+      )
+
+      @router.handler_for(environment).method.should == 'reverse_with_anything_as_a_delete'
+    end
   end
 
   # TODO: 404 when no handler
   # TODO: error callbacks
   # TODO: ensure error callbacks are called when something goes wrong
-  # TODO: should parse complex paths
   # TODO: post request method
   # TODO: make the rule definition available to called code for debug purposes
 end
