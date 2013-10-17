@@ -3,7 +3,25 @@ class Rute
     def initialize configuration
       @configuration = configuration
       @handler_patterns = {}
+      @error_handlers = {}
       @routes = {}
+    end
+
+    def error(error_code, class_name: raise('class_name is required'), method: raise('method is required'), content_type: nil)
+      assert_route class_name: class_name, method: method
+
+      caller = caller_locations(1, 1)[0]
+
+      route = {
+          defined_at: "#{caller.absolute_path}:#{caller.lineno}",
+          handler: Rute::Handler.new(
+              class_name: class_name,
+              method: method
+          )
+      }
+
+      @error_handlers[error_code] ||= {}
+      @error_handlers[error_code][content_type || @configuration.default_content_type] ||= route
     end
 
     def get(request_path, class_name: raise('class_name is required'), method: raise('method is required'), content_type: nil)
@@ -60,8 +78,7 @@ class Rute
         break
       end
 
-      raise 'no pattern' unless handler
-
+      handler = handler_for_error_status(Rute::NOT_FOUND, environment) unless handler
       handler.environment = environment
       handler
     end
@@ -72,6 +89,15 @@ class Rute
           compile_handler_pattern request_method, route
         end
       end
+    end
+
+    def handler_for_error_status status, environment
+      environment.response.status = status
+      error_handler = @error_handlers[status][environment.response.headers['Content-Type']] if @error_handlers[status] && @error_handlers[status][environment.response.headers['Content-Type']]
+
+      raise 'no handler' unless error_handler
+
+      error_handler[:handler]
     end
 
     private

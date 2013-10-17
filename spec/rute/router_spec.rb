@@ -41,7 +41,7 @@ describe Rute::Router do
   it 'should cope with duplicate routes' do
     @router.get '/reverse/:string_in_url', class_name: 'Echo', method: 'reverse'
     @router.get '/reverse/:string_in_url', class_name: 'Echo', method: 'reverse'
-    expect {@router.compile!}.to raise_error(Rute::Exception::DuplicateRoute)
+    expect { @router.compile! }.to raise_error(Rute::Exception::DuplicateRoute)
   end
 
   describe 'content types' do
@@ -161,6 +161,34 @@ describe Rute::Router do
       expect do
         @router.get '/reverse', class_name: 'Echo', method: 'method_with_too_few_parameters'
       end.to raise_error(ArgumentError)
+    end
+  end
+
+  describe 'on error' do
+    describe '404' do
+      before do
+        @router.error Rute::NOT_FOUND, class_name: 'Echo', method: 'reverse'
+
+        environment = Rute::Environment.new(
+            'SCRIPT_NAME' => '/reverse',
+            'CONTENT_TYPE' => 'application/json',
+            'REQUEST_METHOD' => 'GET'
+        )
+
+        @handler = @router.handler_for(environment)
+      end
+
+      it 'should give me a method' do
+        @handler.method.should == 'reverse'
+      end
+
+      it 'should give me a response status' do
+        @handler.environment.response.status.should == 404
+      end
+    end
+
+    describe '500' do
+
     end
   end
 
