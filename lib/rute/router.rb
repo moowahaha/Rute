@@ -5,6 +5,8 @@ class Rute
       @handler_patterns = {}
       @error_handlers = {}
       @routes = {}
+
+      set_default_handlers
     end
 
     def error(error_code, class_name: raise('class_name is required'), method: raise('method is required'), content_type: nil)
@@ -21,7 +23,7 @@ class Rute
       }
 
       @error_handlers[error_code] ||= {}
-      @error_handlers[error_code][content_type || @configuration.default_content_type] ||= route
+      @error_handlers[error_code][content_type || @configuration.default_content_type] = route
     end
 
     def get(request_path, class_name: raise('class_name is required'), method: raise('method is required'), content_type: nil)
@@ -93,6 +95,8 @@ class Rute
 
     def handler_for_error_status status, environment
       environment.response.status = status
+      environment.response.freeze_status!
+
       error_handler = @error_handlers[status][environment.response.headers['Content-Type']] if @error_handlers[status] && @error_handlers[status][environment.response.headers['Content-Type']]
 
       raise 'no handler' unless error_handler
@@ -175,6 +179,10 @@ class Rute
       if (method.parameters & [[:req, :request], [:req, :response]]).length != 2
         raise ArgumentError.new("`does_not_exist' for class `Echo' expects to receive 2 arguments: request & response")
       end
+    end
+
+    def set_default_handlers
+      error Rute::NOT_FOUND, class_name: 'Rute::DefaultHandler', method: 'not_found'
     end
   end
 end

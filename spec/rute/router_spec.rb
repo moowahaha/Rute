@@ -166,24 +166,54 @@ describe Rute::Router do
 
   describe 'on error' do
     describe '404' do
-      before do
-        @router.error Rute::NOT_FOUND, class_name: 'Echo', method: 'reverse'
+      describe 'with handler' do
+        before do
+          @router.error Rute::NOT_FOUND, class_name: 'Echo', method: 'reverse'
 
-        environment = Rute::Environment.new(
-            'SCRIPT_NAME' => '/reverse',
-            'CONTENT_TYPE' => 'application/json',
-            'REQUEST_METHOD' => 'GET'
-        )
+          environment = Rute::Environment.new(
+              'SCRIPT_NAME' => '/reverse',
+              'CONTENT_TYPE' => 'application/json',
+              'REQUEST_METHOD' => 'GET'
+          )
 
-        @handler = @router.handler_for(environment)
+          @handler = @router.handler_for(environment)
+        end
+
+        it 'should give me a method' do
+          @handler.method.should == 'reverse'
+        end
+
+        it 'should give me a response status' do
+          @handler.environment.response.status.should == 404
+        end
+
+        it 'should give me an immutable response status' do
+          expect { @handler.environment.response.status = 123 }.to raise_error(Rute::Exception::StatusCodeChangeDenied)
+        end
       end
 
-      it 'should give me a method' do
-        @handler.method.should == 'reverse'
-      end
+      describe 'without handler' do
+        before do
+          environment = Rute::Environment.new(
+              'SCRIPT_NAME' => '/reverse',
+              'CONTENT_TYPE' => 'application/json',
+              'REQUEST_METHOD' => 'GET'
+          )
 
-      it 'should give me a response status' do
-        @handler.environment.response.status.should == 404
+          @handler = @router.handler_for(environment)
+        end
+
+        it 'should give me a class' do
+          @handler.class_name.should == 'Rute::DefaultHandler'
+        end
+
+        it 'should give me a method' do
+          @handler.method.should == 'not_found'
+        end
+
+        it 'should give me a response status' do
+          @handler.environment.response.status.should == 404
+        end
       end
     end
 
