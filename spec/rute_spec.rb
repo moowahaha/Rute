@@ -1,5 +1,4 @@
 describe Rute do
-  # todo: make this load a config.ru
   before do
     @helper = Rute::TestHelper.new(File.join(File.dirname(__FILE__), 'fixtures', 'config.ru'))
   end

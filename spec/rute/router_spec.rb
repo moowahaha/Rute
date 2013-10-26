@@ -214,6 +214,5 @@ describe Rute::Router do
 
   # TODO: allow routes to hit a static file (esp for error handlers)
   # TODO: redirect
-  # TODO: ensure error callbacks are called when something goes wrong
   # TODO: make the rule definition available to called code for debug purposes
 end

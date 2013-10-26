@@ -11,7 +11,4 @@ describe Rute::Handler do
     handler.environment = environment
     handler.invoke!
   end
-
-  # TODO: handle missing method
-  # TODO: handle exceptions
 end
