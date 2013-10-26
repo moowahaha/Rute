@@ -80,7 +80,8 @@ class Rute
         break
       end
 
-      handler = handler_for_error_status(Rute::NOT_FOUND, environment) unless handler
+      raise Rute::HTTP::NotFound unless handler
+
       handler.environment = environment
       handler
     end
@@ -93,13 +94,17 @@ class Rute
       end
     end
 
-    def handler_for_error_status status, environment
-      environment.response.status = status
+    def handler_for_exception exception, environment
+      environment.response.status = exception.http_status_code
       environment.response.freeze_status!
 
-      error_handler = @error_handlers[status][environment.response.headers['Content-Type']] if @error_handlers[status] && @error_handlers[status][environment.response.headers['Content-Type']]
+      content_type = environment.response.headers['Content-Type'] ? environment.response.headers['Content-Type'] : @configuration.default_content_type
+
+      error_handler = @error_handlers[exception.class][content_type] if @error_handlers[exception.class] && @error_handlers[exception.class][content_type]
 
       raise 'no handler' unless error_handler
+
+      error_handler[:handler].environment = environment
 
       error_handler[:handler]
     end
@@ -182,7 +187,7 @@ class Rute
     end
 
     def set_default_handlers
-      error Rute::NOT_FOUND, class_name: 'Rute::DefaultHandler', method: 'not_found'
+      error Rute::HTTP::NotFound, class_name: 'Rute::DefaultHandler', method: 'not_found'
     end
   end
 end

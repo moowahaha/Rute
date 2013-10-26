@@ -164,66 +164,57 @@ describe Rute::Router do
     end
   end
 
-  describe 'on error' do
-    describe '404' do
-      describe 'with handler' do
-        before do
-          @router.error Rute::NOT_FOUND, class_name: 'Echo', method: 'reverse'
+  describe 'handler_for_exception' do
+    before do
+      @environment = Rute::Environment.new(
+          'SCRIPT_NAME' => '/reverse',
+          'CONTENT_TYPE' => 'application/json',
+          'REQUEST_METHOD' => 'GET'
+      )
+    end
 
-          environment = Rute::Environment.new(
-              'SCRIPT_NAME' => '/reverse',
-              'CONTENT_TYPE' => 'application/json',
-              'REQUEST_METHOD' => 'GET'
-          )
-
-          @handler = @router.handler_for(environment)
-        end
-
-        it 'should give me a method' do
-          @handler.method.should == 'reverse'
-        end
-
-        it 'should give me a response status' do
-          @handler.environment.response.status.should == 404
-        end
-
-        it 'should give me an immutable response status' do
-          expect { @handler.environment.response.status = 123 }.to raise_error(Rute::Exception::StatusCodeChangeDenied)
-        end
+    describe 'default 404 handler' do
+      before do
+        @handler = @router.handler_for_exception(
+            Rute::HTTP::NotFound.new,
+            @environment
+        )
       end
 
-      describe 'without handler' do
-        before do
-          environment = Rute::Environment.new(
-              'SCRIPT_NAME' => '/reverse',
-              'CONTENT_TYPE' => 'application/json',
-              'REQUEST_METHOD' => 'GET'
-          )
+      it 'should give me a class' do
+        @handler.class_name.should == 'Rute::DefaultHandler'
+      end
 
-          @handler = @router.handler_for(environment)
-        end
+      it 'should give me a method' do
+        @handler.method.should == 'not_found'
+      end
 
-        it 'should give me a class' do
-          @handler.class_name.should == 'Rute::DefaultHandler'
-        end
-
-        it 'should give me a method' do
-          @handler.method.should == 'not_found'
-        end
-
-        it 'should give me a response status' do
-          @handler.environment.response.status.should == 404
-        end
+      it 'should give me an immutable response status' do
+        expect { @handler.environment.response.status = 123 }.to raise_error(Rute::Exception::StatusCodeChangeDenied)
       end
     end
 
-    describe '500' do
+    describe 'specified 404 handler' do
+      before do
+        @router.error Rute::HTTP::NotFound, class_name: 'Echo', method: 'reverse'
+        @handler = @router.handler_for_exception(
+            Rute::HTTP::NotFound.new,
+            @environment
+        )
+      end
 
+      it 'should give me a class' do
+        @handler.class_name.should == 'Echo'
+      end
+
+      it 'should give me a method' do
+        @handler.method.should == 'reverse'
+      end
     end
   end
 
   # TODO: allow routes to hit a static file (esp for error handlers)
-  # TODO: error callbacks
+  # TODO: redirect
   # TODO: ensure error callbacks are called when something goes wrong
   # TODO: make the rule definition available to called code for debug purposes
 end
