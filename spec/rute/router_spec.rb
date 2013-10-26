@@ -146,21 +146,18 @@ describe Rute::Router do
 
   describe 'non-existent destinations' do
     it 'should deal with a non-existent class' do
-      expect do
-        @router.get '/reverse', class_name: 'DoesNotExist', method: 'who_cares'
-      end.to raise_error(NameError)
+      @router.get '/reverse', class_name: 'DoesNotExist', method: 'who_cares'
+      expect { @router.compile! }.to raise_error(NameError)
     end
 
     it 'should deal with a non-existent method' do
-      expect do
-        @router.get '/reverse', class_name: 'Echo', method: 'does_not_exist'
-      end.to raise_error(NameError)
+      @router.get '/reverse', class_name: 'Echo', method: 'does_not_exist'
+      expect { @router.compile! }.to raise_error(NameError)
     end
 
     it 'should deal with a method does not accept 2 parameter' do
-      expect do
-        @router.get '/reverse', class_name: 'Echo', method: 'method_with_too_few_parameters'
-      end.to raise_error(ArgumentError)
+      @router.get '/reverse', class_name: 'Echo', method: 'method_with_too_few_parameters'
+      expect { @router.compile! }.to raise_error(ArgumentError)
     end
   end
 
@@ -175,6 +172,7 @@ describe Rute::Router do
 
     describe 'default 404 handler' do
       before do
+        @router.compile!
         @handler = @router.handler_for_exception(
             Rute::HTTP::NotFound.new,
             @environment
@@ -197,6 +195,7 @@ describe Rute::Router do
     describe 'specified 404 handler' do
       before do
         @router.error Rute::HTTP::NotFound, class_name: 'Echo', method: 'reverse'
+        @router.compile!
         @handler = @router.handler_for_exception(
             Rute::HTTP::NotFound.new,
             @environment

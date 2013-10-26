@@ -19,4 +19,12 @@ class Echo
 
   def method_with_too_few_parameters wtf
   end
+
+  def method_that_throws_an_unhandled_exception request, response
+    raise 'wat'
+  end
+
+  def method_that_throws_an_handled_exception request, response
+    raise Rute::HTTP::InternalServerError.new('yo')
+  end
 end

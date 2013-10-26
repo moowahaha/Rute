@@ -10,16 +10,10 @@ class Rute
     end
 
     def error(error_code, class_name: raise('class_name is required'), method: raise('method is required'), content_type: nil)
-      assert_route class_name: class_name, method: method
-
-      caller = caller_locations(1, 1)[0]
-
       route = {
-          defined_at: "#{caller.absolute_path}:#{caller.lineno}",
-          handler: Rute::Handler.new(
-              class_name: class_name,
-              method: method
-          )
+          defined_at: caller(1, 1),
+          class_name: class_name,
+          method: method
       }
 
       @error_handlers[error_code] ||= {}
@@ -87,8 +81,19 @@ class Rute
     end
 
     def compile!
+      @error_handlers.each do |error, content_types|
+        content_types.each do |content_type, route|
+          assert_route route
+          route[:handler] = Rute::Handler.new(
+              class_name: route[:class_name],
+              method: route[:method]
+          )
+        end
+      end
+
       @routes.each do |request_method, routes|
         routes.each do |route|
+          assert_route route
           compile_handler_pattern request_method, route
         end
       end
@@ -143,10 +148,7 @@ class Rute
     end
 
     def add_route request_method, route
-      caller = caller_locations(2, 2)[0]
-      route[:defined_at] = "#{caller.absolute_path}:#{caller.lineno}"
-
-      assert_route route
+      route[:defined_at] = caller(2, 2)
 
       @routes[request_method] ||= []
       @routes[request_method] << route
@@ -172,22 +174,28 @@ class Rute
         identifier == possible_duplicate[:identifier]
       end.first
 
-      raise(
-          Rute::Exception::DuplicateRoute,
-          "Duplicate paths defined on #{duplicate_route[:defined_at]} and  #{defined_at}"
-      ) if duplicate_route
+      if duplicate_route
+        exception = Rute::Exception::DuplicateRoute.new(
+            "Path already defined at #{duplicate_route[:defined_at][0]}"
+        )
+        exception.set_backtrace defined_at
+        raise exception
+      end
     end
 
     def assert_route route
       klass = Module.const_get(route[:class_name])
       method = klass.instance_method(route[:method])
       if (method.parameters & [[:req, :request], [:req, :response]]).length != 2
-        raise ArgumentError.new("`does_not_exist' for class `Echo' expects to receive 2 arguments: request & response")
+        exception = ArgumentError.new("`#{route[:method]}' for class `#{route[:class_name]}' expects to receive 2 arguments: request & response")
+        exception.set_backtrace(route[:defined_at])
+        raise exception
       end
     end
 
     def set_default_handlers
       error Rute::HTTP::NotFound, class_name: 'Rute::DefaultHandler', method: 'not_found'
+      error Rute::HTTP::InternalServerError, class_name: 'Rute::DefaultHandler', method: 'internal_server_error'
     end
   end
 end

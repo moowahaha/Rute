@@ -9,8 +9,17 @@ class Rute
     end
 
     def call env
-      handler = @router.handler_for Rute::Environment.new env
-      handler.invoke!
+      environment = Rute::Environment.new env
+      begin
+        handler = @router.handler_for environment
+        handler.invoke!
+      rescue Rute::HTTP::Exception => e
+        handler = @router.handler_for_exception e, environment
+      rescue => e
+        $stderr.print e.message
+        handler = @router.handler_for_exception Rute::HTTP::InternalServerError.new, environment
+      end
+
       response = handler.environment.response
       [response.status, response.headers, response.body]
     end

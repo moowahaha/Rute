@@ -1,7 +1,7 @@
 class Rute
     class HTTP
-      class NotFound < ::Exception
-        def http_status_code() 404 end
+      class NotFound < Rute::HTTP::Exception
+        HTTP_STATUS_CODE = 404
       end
   end
 end
