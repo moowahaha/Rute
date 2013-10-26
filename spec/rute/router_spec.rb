@@ -212,6 +212,7 @@ describe Rute::Router do
     end
   end
 
+  # TODO: caching rules
   # TODO: allow routes to hit a static file (esp for error handlers)
   # TODO: make the rule definition available to called code for debug purposes
 end

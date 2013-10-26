@@ -3,7 +3,7 @@ require 'rack'
 class Rute
   class Environment
     class Request
-      attr_reader :parameters, :path, :method, :content_type
+      attr_reader :parameters, :path, :method, :content_type, :time
 
       def initialize raw_environment
         raw_environment['rack.input'] ||= StringIO.new
@@ -12,6 +12,7 @@ class Rute
         @path = rack_request.path
         @method = (rack_request.request_method || '').downcase.to_sym
         @content_type = (rack_request.content_type || '').downcase
+        @time = Time.now
       end
     end
   end

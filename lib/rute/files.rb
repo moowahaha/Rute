@@ -9,7 +9,7 @@ class Rute
     def load!
       load_files
 
-      # TODO: if configuration.detect_file_changes, thread
+      # TODO: if configuration.detect_file_changes, thread... or use Rack::Reloadery thing
     end
 
     def static_content file

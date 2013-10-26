@@ -3,7 +3,6 @@ require 'rack'
 class Rute
   class Application
     def initialize router, files
-      @@environment = nil
       @router = router
       @files = files
     end
