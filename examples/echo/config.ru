@@ -5,6 +5,6 @@ require 'rute'
 rute = Rute.new
 rute.set.detect_file_changes = true
 rute.set.load_paths = ['lib']
-rute.on.get '/reverse', class_name: 'Echo', method: 'reverse', content_type: 'application/json'
+rute.on.get '/reverse/:string', class_name: 'Echo', method: 'reverse'
 
 run rute.application

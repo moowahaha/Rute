@@ -2,15 +2,27 @@ require 'uri'
 
 class Rute
   class TestHelper
-    def initialize rute
-      @application = rute.application
+    BASENAME = 'config.ru'
+    def initialize config_ru_file
+      @application = nil
+      directory = File.dirname(config_ru_file)
+
+      raise ArgumentError.new("#{config_ru_file} must have a basename of config.ru") unless File.basename(config_ru_file) == BASENAME
+
+      FileUtils.chdir(directory) do
+        eval File.read(BASENAME)
+      end
     end
 
-    def get path: raise('path is required'), parameters: {}, content_type: 'text/html'
+    def get path, parameters: {}, content_type: 'text/html'
       Rute::TestHelper::Response.new(@application.call build_env(path, parameters, content_type, 'GET'))
     end
 
     private
+
+    def run application
+      @application = application
+    end
 
     def build_env path, parameters, content_type, request_method
       {
