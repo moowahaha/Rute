@@ -6,7 +6,7 @@ describe Rute::Router do
   end
 
   it 'should setup environment with request parameters' do
-    @router.get '/reverse/:string_in_url', class: Echo, method: 'reverse'
+    @router.get '/reverse/:string_in_url', class: Echo, method: :reverse
     @router.compile!
 
     environment = Rute::Environment.new(
@@ -22,14 +22,14 @@ describe Rute::Router do
   end
 
   it 'should cope with duplicate routes' do
-    @router.get '/reverse/:string_in_url', class: Echo, method: 'reverse'
-    @router.get '/reverse/:string_in_url', class: 'Echo', method: 'reverse'
+    @router.get '/reverse/:string_in_url', class: Echo, method: :reverse
+    @router.get '/reverse/:string_in_url', class: Echo, method: :reverse
     expect { @router.compile! }.to raise_error(Rute::Exception::DuplicateRoute)
   end
 
   describe 'invalid route parameters' do
     it 'should throw an exception when we lack a class' do
-      expect { @router.get '/', method: 'blah' }.to raise_error(ArgumentError)
+      expect { @router.get '/', method: :blah }.to raise_error(ArgumentError)
     end
 
     it 'should throw an exception when we lack a method' do
@@ -70,8 +70,8 @@ describe Rute::Router do
 
   describe 'content types' do
     before do
-      @router.get '/reverse', class: Echo, method: 'reverse_with_json', content_type: 'application/json'
-      @router.get '/reverse', class: Echo, method: 'reverse_with_anything'
+      @router.get '/reverse', class: Echo, method: :reverse_with_json, content_type: 'application/json'
+      @router.get '/reverse', class: Echo, method: :reverse_with_anything
       @router.compile!
     end
 
@@ -120,10 +120,10 @@ describe Rute::Router do
 
   describe 'verbs' do
     before do
-      @router.get '/reverse', class: Echo, method: 'some_get_method'
-      @router.post '/reverse', class: Echo, method: 'some_post_method'
-      @router.put '/reverse', class: Echo, method: 'some_put_method'
-      @router.delete '/reverse', class: Echo, method: 'some_delete_method'
+      @router.get '/reverse', class: Echo, method: :some_get_method
+      @router.post '/reverse', class: Echo, method: :some_post_method
+      @router.put '/reverse', class: Echo, method: :some_put_method
+      @router.delete '/reverse', class: Echo, method: :some_delete_method
       @router.compile!
     end
 
@@ -201,7 +201,7 @@ describe Rute::Router do
 
     describe 'specified 404 handler' do
       before do
-        @router.error Rute::HTTP::NotFound, class: 'Echo', method: 'reverse'
+        @router.error Rute::HTTP::NotFound, class: Echo, method: :reverse
         @router.compile!
         @handler = @router.handler_for_exception(
             Rute::HTTP::NotFound.new,

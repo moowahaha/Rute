@@ -5,7 +5,7 @@ describe Rute::HandlerFactory do
   end
 
   it 'should instantiate a code handler for a code route' do
-    Rute::Handler::Code.should_receive(:new).with(class_name: 'blah', method: 'deblah').and_return('code handler')
-    Rute::HandlerFactory.build(class_name: 'blah', method: 'deblah').should == 'code handler'
+    Rute::Handler::Code.should_receive(:new).with(class: 'blah', method: 'deblah').and_return('code handler')
+    Rute::HandlerFactory.build(class: 'blah', method: 'deblah').should == 'code handler'
   end
 end

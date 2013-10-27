@@ -172,8 +172,8 @@ class Rute
     end
 
     def set_default_handlers
-      error Rute::HTTP::NotFound, class: 'Rute::DefaultHandler', method: 'not_found'
-      error Rute::HTTP::InternalServerError, class: 'Rute::DefaultHandler', method: 'internal_server_error'
+      error Rute::HTTP::NotFound, class: Rute::DefaultHandler, method: :not_found
+      error Rute::HTTP::InternalServerError, class: Rute::DefaultHandler, method: :internal_server_error
     end
   end
 end
