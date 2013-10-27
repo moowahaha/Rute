@@ -30,15 +30,15 @@ describe Rute::Environment::Response do
 
   describe 'redirect_to' do
     before do
-      @response.redirect_to 'http://www.blah.com'
+      @response.redirect_to 'http://www.blah.com', {name: 'bob smith'}
     end
 
     it 'should set the location header' do
-      @response.headers['Location'].should == 'http://www.blah.com'
+      @response.headers['Location'].should == 'http://www.blah.com?name=bob+smith'
     end
 
-    it 'should set an http status of 303' do
-      @response.status.should == 303
+    it 'should set an http status of 302' do
+      @response.status.should == 302
     end
 
     it 'should freeze the status' do
@@ -48,14 +48,14 @@ describe Rute::Environment::Response do
 
   describe 'permanently_moved_to' do
     before do
-      @response.permanently_moved_to 'http://www.blah.com'
+      @response.permanently_moved_to 'http://www.blah.com', {name: 'bob smith'}
     end
 
     it 'should set the location header' do
-      @response.headers['Location'].should == 'http://www.blah.com'
+      @response.headers['Location'].should == 'http://www.blah.com?name=bob+smith'
     end
 
-    it 'should set an http status of 303' do
+    it 'should set an http status of 301' do
       @response.status.should == 301
     end
 

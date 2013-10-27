@@ -233,5 +233,4 @@ describe Rute::Router do
 
   # TODO: caching rules
   # TODO: websockets
-  # TODO: make the rule definition available to called code for debug purposes
 end

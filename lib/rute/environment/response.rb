@@ -19,12 +19,12 @@ class Rute
         @headers['Content-Type']
       end
 
-      def redirect_to path
-        redirect 303, path
+      def redirect_to path, params = {}
+        redirect 302, path, params
       end
 
-      def permanently_moved_to path
-        redirect 301, path
+      def permanently_moved_to path, params = {}
+        redirect 301, path, params
       end
 
       def freeze_status!
@@ -38,8 +38,8 @@ class Rute
 
       private
 
-      def redirect status, path
-        @headers['Location'] = path
+      def redirect status, path, params
+        @headers['Location'] = params.empty? ? path : path + '?' + URI.encode_www_form(params.map {|k, v| [k, v]})
         @status = status
         freeze_status!
       end
