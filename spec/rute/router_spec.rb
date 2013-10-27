@@ -229,5 +229,6 @@ describe Rute::Router do
     end
   end
 
+  # TODO: static file trees
   # TODO: websockets
 end
