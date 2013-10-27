@@ -4,7 +4,7 @@ require 'mimemagic'
 class Rute
   class Handler
     class StaticFile
-      attr_reader :path, :mime_type
+      attr_reader :path, :mime_type, :mtime
       attr_accessor :environment
 
       def initialize route
@@ -31,6 +31,8 @@ class Rute
           exception.set_backtrace(route[:defined_at])
           raise exception
         end
+
+        @mtime = File.mtime(@path)
       end
     end
   end

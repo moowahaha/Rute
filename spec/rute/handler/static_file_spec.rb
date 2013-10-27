@@ -28,6 +28,13 @@ describe Rute::Handler::StaticFile do
     end
   end
 
+  it 'should grab the mod time of the file' do
+    Rute::Handler::StaticFile.new(
+        static_file: __FILE__,
+        defined_at: ['hello']
+    ).mtime.should == File.mtime(__FILE__)
+  end
+
   describe 'invoke!' do
     before do
       handler = Rute::Handler::StaticFile.new(
