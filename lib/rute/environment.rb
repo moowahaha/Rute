@@ -1,6 +1,6 @@
 class Rute
   class Environment
-    attr_reader :request, :response
+    attr_accessor :request, :response
 
     def initialize raw_environment
       @request = Rute::Environment::Request.new raw_environment

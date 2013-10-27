@@ -1,3 +1,5 @@
+require 'tempfile'
+
 describe Rute::Handler::StaticFile do
   describe 'absolute path' do
     it 'should barf on non-existent file in absolute path' do
@@ -56,6 +58,40 @@ describe Rute::Handler::StaticFile do
 
     it 'should yield a content type' do
       @response.headers['Content-Type'].should == 'text/plain'
+    end
+  end
+
+  describe 'caching' do
+    before do
+      Rute::Cache.clear
+      configuration = Rute::Configuration.new
+      configuration.cache[:config][:path] = File.join(Dir.tmpdir, 'rute_test.db')
+
+      @tmp_file = Tempfile.new(['rute', '.html'])
+      @tmp_file.write('whatevs')
+      @tmp_file.close
+
+      @handler = Rute::Handler::StaticFile.new(
+          static_file: @tmp_file.path,
+          defined_at: ['here'],
+          configuration: configuration,
+          cache: true
+      )
+
+      @handler.environment = Rute::Environment.new('QUERY_STRING' => 'a=b', 'SCRIPT_NAME' => '/blah')
+      @handler.invoke!
+    end
+
+    it 'should serve the content nice and easy' do
+      @handler.environment.response.body.should == 'whatevs'
+      @handler.environment.response.content_type.should == 'text/html'
+    end
+
+    it 'should serve the content regardless of whether it has changed' do
+      @tmp_file.unlink
+      @handler.invoke!
+      @handler.environment.response.body.should == 'whatevs'
+      @handler.environment.response.content_type.should == 'text/html'
     end
   end
 end

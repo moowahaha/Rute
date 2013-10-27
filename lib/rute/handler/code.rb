@@ -1,12 +1,12 @@
 class Rute
   class Handler
-    class Code
+    class Code < Rute::Handler
       attr_reader :method, :class_name
-      attr_accessor :environment
 
       @@instantiated_classes = {}
 
       def initialize route
+        super route
         @method = route[:method]
         @class_name = route[:class_name]
         @defined_at = route[:defined_at]
@@ -17,7 +17,9 @@ class Rute
         @instance = @@instantiated_classes[class_name]
       end
 
-      def invoke!
+      protected
+
+      def invoke_uncached!
         @instance.send(@method, @environment.request, @environment.response)
       end
 

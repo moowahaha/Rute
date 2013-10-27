@@ -3,16 +3,19 @@ require 'mimemagic'
 
 class Rute
   class Handler
-    class StaticFile
+    class StaticFile < Rute::Handler
       attr_reader :path, :mime_type, :mtime
-      attr_accessor :environment
 
       def initialize route
+        super route
         expand_path route
         @mime_type = MimeMagic.by_path(@path).type
+        @mtime = File.mtime(@path)
       end
 
-      def invoke!
+      protected
+
+      def invoke_uncached!
         @environment.response.body = File.read(@path)
         @environment.response.content_type = @mime_type
       end
@@ -31,8 +34,6 @@ class Rute
           exception.set_backtrace(route[:defined_at])
           raise exception
         end
-
-        @mtime = File.mtime(@path)
       end
     end
   end

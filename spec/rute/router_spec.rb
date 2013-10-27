@@ -231,6 +231,5 @@ describe Rute::Router do
     end
   end
 
-  # TODO: caching rules
   # TODO: websockets
 end

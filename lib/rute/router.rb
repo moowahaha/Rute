@@ -9,13 +9,14 @@ class Rute
       set_default_handlers
     end
 
-    def error(error_code, class_name: nil, method: nil, static_file: nil, content_type: nil)
+    def error(error_code, class_name: nil, method: nil, static_file: nil, content_type: nil, cache: false)
       route = {
           defined_at: caller(1, 1),
           class_name: class_name,
           method: method,
           static_file: static_file,
-          configuration: @configuration
+          configuration: @configuration,
+          cache: cache
       }
 
       assert_route_parameters class_name, method, static_file, caller(1, 1)
@@ -24,43 +25,47 @@ class Rute
       @error_handlers[error_code][content_type || @configuration.default_content_type] = route
     end
 
-    def get(request_path, class_name: nil, method: nil, static_file: nil, content_type: nil)
+    def get(request_path, class_name: nil, method: nil, static_file: nil, content_type: nil, cache: false)
       add_route :get, {
           request_path: request_path,
           class_name: class_name,
           static_file: static_file,
           method: method,
-          content_type: content_type
+          content_type: content_type,
+          cache: cache
       }
     end
 
-    def post(request_path, class_name: nil, method: nil, static_file: nil, content_type: nil)
+    def post(request_path, class_name: nil, method: nil, static_file: nil, content_type: nil, cache: false)
       add_route :post, {
           request_path: request_path,
           class_name: class_name,
           method: method,
           static_file: static_file,
-          content_type: content_type
+          content_type: content_type,
+          cache: cache
       }
     end
 
-    def put(request_path, class_name: nil, method: nil, static_file: nil, content_type: nil)
+    def put(request_path, class_name: nil, method: nil, static_file: nil, content_type: nil, cache: false)
       add_route :put, {
           request_path: request_path,
           class_name: class_name,
           method: method,
           static_file: static_file,
-          content_type: content_type
+          content_type: content_type,
+          cache: cache
       }
     end
 
-    def delete(request_path, class_name: nil, method: nil, static_file: nil, content_type: nil)
+    def delete(request_path, class_name: nil, method: nil, static_file: nil, content_type: nil, cache: false)
       add_route :delete, {
           request_path: request_path,
           class_name: class_name,
           method: method,
           static_file: static_file,
-          content_type: content_type
+          content_type: content_type,
+          cache: cache
       }
     end
 
