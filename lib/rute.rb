@@ -5,8 +5,6 @@ end
 class Rute
   attr_reader :set, :on
 
-  OK = 200
-
   def initialize
     @set = Rute::Configuration.new
     @set.project_root = File.dirname(caller_locations(1, 1)[0].path)

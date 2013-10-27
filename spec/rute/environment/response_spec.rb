@@ -5,7 +5,7 @@ describe Rute::Environment::Response do
 
   describe 'status' do
     it 'should have a default' do
-      @response.status.should == Rute::OK
+      @response.status.should == 200
     end
 
     it 'should throw an exception when attempting to change frozen status' do

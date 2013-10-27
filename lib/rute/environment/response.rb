@@ -5,7 +5,7 @@ class Rute
       attr_reader :headers
 
       def initialize
-        @status = Rute::OK
+        @status = 200
         @headers = {}
         @body = ''
         @status_frozen = false
