@@ -19,7 +19,7 @@ describe Rute::Handler::Code do
     it 'should deal with a non-existent class' do
       expect {
         Rute::Handler::Code.new(
-            class_name: 'DoesNotExist',
+            class: 'DoesNotExist',
             method: 'who_cares',
             defined_at: ['here']
         )
@@ -29,7 +29,7 @@ describe Rute::Handler::Code do
     it 'should deal with a non-existent method' do
       expect {
         Rute::Handler::Code.new(
-            class_name: 'RuteHandlerTestClass',
+            class: RuteHandlerTestClass,
             method: 'does_not_exist',
             defined_at: ['here']
         )
@@ -39,7 +39,7 @@ describe Rute::Handler::Code do
     it 'should deal with a method does not accept 2 parameter' do
       expect {
         Rute::Handler::Code.new(
-            class_name: 'RuteHandlerTestClass',
+            class: RuteHandlerTestClass,
             method: 'method_with_too_few_parameters',
             defined_at: ['here']
         )
@@ -54,7 +54,7 @@ describe Rute::Handler::Code do
       configuration.cache[:config][:path] = File.join(Dir.tmpdir, 'rute_test.db')
 
       @handler = Rute::Handler::Code.new(
-          class_name: 'RuteHandlerTestClass',
+          class: RuteHandlerTestClass,
           method: 'cache_test_method',
           defined_at: ['here'],
           configuration: configuration,

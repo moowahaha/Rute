@@ -2,10 +2,10 @@ $:.unshift File.join(File.dirname(__FILE__), '..', '..', 'lib')
 
 require 'rute'
 
-rute = Rute.new
-rute.set.detect_file_changes = true
-rute.set.load_paths = ['lib']
-rute.on.get '/reverse/:string', class_name: 'Echo', method: 'reverse'
-rute.on.get '/', static_file: '/Users/shardisty/Desktop/graph.gif'
+require './lib/echo'
 
-run rute.application
+Rute.new do
+  set.detect_file_changes = true
+  on.get '/reverse/:string', class: Echo, method: 'reverse'
+  on.get '/', static_file: '/Users/shardisty/Desktop/graph.gif'
+end

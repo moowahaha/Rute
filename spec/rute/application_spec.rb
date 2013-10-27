@@ -8,9 +8,8 @@ describe Rute::Application do
     @environment.should_receive(:response).and_return(response)
     @handler = double(Rute::Handler)
     @router = double(Rute::Router)
-    files = double(Rute::Files)
     Rute::Environment.should_receive(:new).with({}).and_return(@environment)
-    @application = Rute::Application.new @router, files
+    @application = Rute::Application.new @router
   end
 
   describe 'successful request' do

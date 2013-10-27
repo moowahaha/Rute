@@ -2,13 +2,11 @@ describe Rute::Router do
   before do
     configuration = Rute::Configuration.new
     configuration.project_root = File.join($SPEC_ROOT, 'fixtures')
-    files = Rute::Files.new configuration
-    files.load!
     @router = Rute::Router.new configuration
   end
 
   it 'should setup environment with request parameters' do
-    @router.get '/reverse/:string_in_url', class_name: 'Echo', method: 'reverse'
+    @router.get '/reverse/:string_in_url', class: Echo, method: 'reverse'
     @router.compile!
 
     environment = Rute::Environment.new(
@@ -24,30 +22,30 @@ describe Rute::Router do
   end
 
   it 'should cope with duplicate routes' do
-    @router.get '/reverse/:string_in_url', class_name: 'Echo', method: 'reverse'
-    @router.get '/reverse/:string_in_url', class_name: 'Echo', method: 'reverse'
+    @router.get '/reverse/:string_in_url', class: Echo, method: 'reverse'
+    @router.get '/reverse/:string_in_url', class: 'Echo', method: 'reverse'
     expect { @router.compile! }.to raise_error(Rute::Exception::DuplicateRoute)
   end
 
   describe 'invalid route parameters' do
-    it 'should throw an exception when we lack a class_name' do
+    it 'should throw an exception when we lack a class' do
       expect { @router.get '/', method: 'blah' }.to raise_error(ArgumentError)
     end
 
     it 'should throw an exception when we lack a method' do
-      expect { @router.get '/', class_name: 'blah' }.to raise_error(ArgumentError)
+      expect { @router.get '/', class: 'blah' }.to raise_error(ArgumentError)
     end
 
-    it 'should throw an exception when we specify a static with a class_name' do
-      expect { @router.get '/', static: '', class_name: '' }.to raise_error(ArgumentError)
+    it 'should throw an exception when we specify a static with a class' do
+      expect { @router.get '/', static_file: '', class: '' }.to raise_error(ArgumentError)
     end
 
     it 'should throw an exception when we specify a static with a method' do
-      expect { @router.get '/', static: '', method: '' }.to raise_error(ArgumentError)
+      expect { @router.get '/', static_file: '', method: '' }.to raise_error(ArgumentError)
     end
 
-    it 'should throw an exception when we specify a static with a class_name and a method' do
-      expect { @router.get '/', static: '', class_name: '', method: '' }.to raise_error(ArgumentError)
+    it 'should throw an exception when we specify a static with a class and a method' do
+      expect { @router.get '/', static_file: '', class: '', method: '' }.to raise_error(ArgumentError)
     end
 
     it 'should throw an exception when we lack everything' do
@@ -72,8 +70,8 @@ describe Rute::Router do
 
   describe 'content types' do
     before do
-      @router.get '/reverse', class_name: 'Echo', method: 'reverse_with_json', content_type: 'application/json'
-      @router.get '/reverse', class_name: 'Echo', method: 'reverse_with_anything'
+      @router.get '/reverse', class: Echo, method: 'reverse_with_json', content_type: 'application/json'
+      @router.get '/reverse', class: Echo, method: 'reverse_with_anything'
       @router.compile!
     end
 
@@ -84,7 +82,7 @@ describe Rute::Router do
           'REQUEST_METHOD' => 'GET'
       )
 
-      @router.handler_for(environment).method.should == 'reverse_with_json'
+      @router.handler_for(environment).inspectable_method.should == 'reverse_with_json'
     end
 
     it 'should use a fallback when supplied' do
@@ -94,7 +92,7 @@ describe Rute::Router do
           'REQUEST_METHOD' => 'GET'
       )
 
-      @router.handler_for(environment).method.should == 'reverse_with_anything'
+      @router.handler_for(environment).inspectable_method.should == 'reverse_with_anything'
     end
 
     it 'should respond with the appropriate content type' do
@@ -122,10 +120,10 @@ describe Rute::Router do
 
   describe 'verbs' do
     before do
-      @router.get '/reverse', class_name: 'Echo', method: 'some_get_method'
-      @router.post '/reverse', class_name: 'Echo', method: 'some_post_method'
-      @router.put '/reverse', class_name: 'Echo', method: 'some_put_method'
-      @router.delete '/reverse', class_name: 'Echo', method: 'some_delete_method'
+      @router.get '/reverse', class: Echo, method: 'some_get_method'
+      @router.post '/reverse', class: Echo, method: 'some_post_method'
+      @router.put '/reverse', class: Echo, method: 'some_put_method'
+      @router.delete '/reverse', class: Echo, method: 'some_delete_method'
       @router.compile!
     end
 
@@ -136,7 +134,7 @@ describe Rute::Router do
           'REQUEST_METHOD' => 'GET'
       )
 
-      @router.handler_for(environment).method.should == 'some_get_method'
+      @router.handler_for(environment).inspectable_method.should == 'some_get_method'
     end
 
     it 'should post on POST request' do
@@ -146,7 +144,7 @@ describe Rute::Router do
           'REQUEST_METHOD' => 'POST'
       )
 
-      @router.handler_for(environment).method.should == 'some_post_method'
+      @router.handler_for(environment).inspectable_method.should == 'some_post_method'
     end
 
     it 'should put on PUT request' do
@@ -156,7 +154,7 @@ describe Rute::Router do
           'REQUEST_METHOD' => 'PUT'
       )
 
-      @router.handler_for(environment).method.should == 'some_put_method'
+      @router.handler_for(environment).inspectable_method.should == 'some_put_method'
     end
 
     it 'should delete on DELETE request' do
@@ -166,7 +164,7 @@ describe Rute::Router do
           'REQUEST_METHOD' => 'DELETE'
       )
 
-      @router.handler_for(environment).method.should == 'some_delete_method'
+      @router.handler_for(environment).inspectable_method.should == 'some_delete_method'
     end
   end
 
@@ -189,11 +187,11 @@ describe Rute::Router do
       end
 
       it 'should give me a class' do
-        @handler.class_name.should == 'Rute::DefaultHandler'
+        @handler.inspectable_class.should == Rute::DefaultHandler
       end
 
       it 'should give me a method' do
-        @handler.method.should == 'not_found'
+        @handler.inspectable_method.should == 'not_found'
       end
 
       it 'should give me an immutable response status' do
@@ -203,7 +201,7 @@ describe Rute::Router do
 
     describe 'specified 404 handler' do
       before do
-        @router.error Rute::HTTP::NotFound, class_name: 'Echo', method: 'reverse'
+        @router.error Rute::HTTP::NotFound, class: 'Echo', method: 'reverse'
         @router.compile!
         @handler = @router.handler_for_exception(
             Rute::HTTP::NotFound.new,
@@ -212,11 +210,11 @@ describe Rute::Router do
       end
 
       it 'should give me a class' do
-        @handler.class_name.should == 'Echo'
+        @handler.inspectable_class.should == Echo
       end
 
       it 'should give me a method' do
-        @handler.method.should == 'reverse'
+        @handler.inspectable_method.should == 'reverse'
       end
     end
 

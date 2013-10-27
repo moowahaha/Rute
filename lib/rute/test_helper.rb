@@ -18,11 +18,11 @@ class Rute
       Rute::TestHelper::Response.new(@application.call build_env(path, parameters, content_type, 'GET'))
     end
 
-    private
-
     def run application
       @application = application
     end
+
+    private
 
     def build_env path, parameters, content_type, request_method
       {

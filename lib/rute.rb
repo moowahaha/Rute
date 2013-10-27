@@ -5,17 +5,19 @@ end
 class Rute
   attr_reader :set, :on
 
-  def initialize
+  def initialize &block
+    rack_builder = block.binding.eval('self')
+
     @set = Rute::Configuration.new
     @set.project_root = File.dirname(caller_locations(1, 1)[0].path)
     @on = Rute::Router.new @set
-  end
 
-  def application
-    files = Rute::Files.new @set
-    files.load!
+    instance_eval &block
+    rack_builder.use(Rack::Reloader, 0) if @set.detect_file_changes
+    #files.load!
     @on.compile!
-    Rute::Application.new @on, files
+
+    rack_builder.run(Rute::Application.new @on)
   end
 end
 

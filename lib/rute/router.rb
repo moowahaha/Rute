@@ -9,64 +9,30 @@ class Rute
       set_default_handlers
     end
 
-    def error(error_code, class_name: nil, method: nil, static_file: nil, content_type: nil, cache: false)
-      route = {
-          defined_at: caller(1, 1),
-          class_name: class_name,
-          method: method,
-          static_file: static_file,
-          configuration: @configuration,
-          cache: cache
-      }
+    def error error_code, route
+      route[:defined_at] = caller(1, 1)
+      route[:configuration] = @configuration
 
-      assert_route_parameters class_name, method, static_file, caller(1, 1)
+      assert_route_parameters route
 
       @error_handlers[error_code] ||= {}
-      @error_handlers[error_code][content_type || @configuration.default_content_type] = route
+      @error_handlers[error_code][route[:content_type] || @configuration.default_content_type] = route
     end
 
-    def get(request_path, class_name: nil, method: nil, static_file: nil, content_type: nil, cache: false)
-      add_route :get, {
-          request_path: request_path,
-          class_name: class_name,
-          static_file: static_file,
-          method: method,
-          content_type: content_type,
-          cache: cache
-      }
+    def get request_path, route
+      add_route :get, request_path, route
     end
 
-    def post(request_path, class_name: nil, method: nil, static_file: nil, content_type: nil, cache: false)
-      add_route :post, {
-          request_path: request_path,
-          class_name: class_name,
-          method: method,
-          static_file: static_file,
-          content_type: content_type,
-          cache: cache
-      }
+    def post request_path, route
+      add_route :post, request_path, route
     end
 
-    def put(request_path, class_name: nil, method: nil, static_file: nil, content_type: nil, cache: false)
-      add_route :put, {
-          request_path: request_path,
-          class_name: class_name,
-          method: method,
-          static_file: static_file,
-          content_type: content_type,
-          cache: cache
-      }
+    def put request_path, route
+      add_route :put, request_path, route
     end
 
-    def delete(request_path, class_name: nil, method: nil, static_file: nil, content_type: nil, cache: false)
-      add_route :delete, {
-          request_path: request_path,
-          class_name: class_name,
-          method: method,
-          static_file: static_file,
-          content_type: content_type,
-          cache: cache
-      }
+    def delete request_path, route
+      add_route :delete, request_path, route
     end
 
     def handler_for environment
@@ -152,19 +118,25 @@ class Rute
       }
     end
 
-    def assert_route_parameters class_name, method, static_file, backtrace
-      unless (class_name && method) || static_file
-        exception = ArgumentError.new('Route must specify class_name and method OR static_file')
-        exception.set_backtrace backtrace
-        raise exception
-      end
+    def assert_route_parameters route
+      raise_argument_exception_for route if route[:class] && route[:static_file]
+      raise_argument_exception_for route if route[:method] && route[:static_file]
+      raise_argument_exception_for route if route[:class] && !route[:method]
+      raise_argument_exception_for route if !route[:class] && route[:method]
     end
 
-    def add_route request_method, route
+    def raise_argument_exception_for route
+      exception = ArgumentError.new('Route must specify class and method OR static_file')
+      exception.set_backtrace route[:defined_at]
+      raise exception
+    end
+
+    def add_route request_method, request_path, route
+      route[:request_path] = request_path
       route[:defined_at] = caller(2, 2)
       route[:configuration] = @configuration
 
-      assert_route_parameters route[:class_name], route[:method], route[:static_file], route[:defined_at]
+      assert_route_parameters route
 
       @routes[request_method] ||= []
       @routes[request_method] << route
@@ -200,8 +172,8 @@ class Rute
     end
 
     def set_default_handlers
-      error Rute::HTTP::NotFound, class_name: 'Rute::DefaultHandler', method: 'not_found'
-      error Rute::HTTP::InternalServerError, class_name: 'Rute::DefaultHandler', method: 'internal_server_error'
+      error Rute::HTTP::NotFound, class: 'Rute::DefaultHandler', method: 'not_found'
+      error Rute::HTTP::InternalServerError, class: 'Rute::DefaultHandler', method: 'internal_server_error'
     end
   end
 end
