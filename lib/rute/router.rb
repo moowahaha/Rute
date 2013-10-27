@@ -9,49 +9,57 @@ class Rute
       set_default_handlers
     end
 
-    def error(error_code, class_name: raise('class_name is required'), method: raise('method is required'), content_type: nil)
+    def error(error_code, class_name: nil, method: nil, static_file: nil, content_type: nil)
       route = {
           defined_at: caller(1, 1),
           class_name: class_name,
-          method: method
+          method: method,
+          static_file: static_file,
+          configuration: @configuration
       }
+
+      assert_route_parameters class_name, method, static_file, caller(1, 1)
 
       @error_handlers[error_code] ||= {}
       @error_handlers[error_code][content_type || @configuration.default_content_type] = route
     end
 
-    def get(request_path, class_name: raise('class_name is required'), method: raise('method is required'), content_type: nil)
+    def get(request_path, class_name: nil, method: nil, static_file: nil, content_type: nil)
       add_route :get, {
           request_path: request_path,
           class_name: class_name,
+          static_file: static_file,
           method: method,
           content_type: content_type
       }
     end
 
-    def post(request_path, class_name: raise('class_name is required'), method: raise('method is required'), content_type: nil)
+    def post(request_path, class_name: nil, method: nil, static_file: nil, content_type: nil)
       add_route :post, {
           request_path: request_path,
           class_name: class_name,
           method: method,
+          static_file: static_file,
           content_type: content_type
       }
     end
 
-    def put(request_path, class_name: raise('class_name is required'), method: raise('method is required'), content_type: nil)
+    def put(request_path, class_name: nil, method: nil, static_file: nil, content_type: nil)
       add_route :put, {
           request_path: request_path,
           class_name: class_name,
           method: method,
+          static_file: static_file,
           content_type: content_type
       }
     end
 
-    def delete(request_path, class_name: raise('class_name is required'), method: raise('method is required'), content_type: nil)
+    def delete(request_path, class_name: nil, method: nil, static_file: nil, content_type: nil)
       add_route :delete, {
           request_path: request_path,
           class_name: class_name,
           method: method,
+          static_file: static_file,
           content_type: content_type
       }
     end
@@ -59,7 +67,7 @@ class Rute
     def handler_for environment
       request = environment.request
       path = clean_path(request.path)
-      environment.response.headers['Content-Type'] = @configuration.default_content_type
+      environment.response.content_type = @configuration.default_content_type
       handler = nil
 
       candidate_handlers_for(request).each do |handler_pattern|
@@ -70,7 +78,7 @@ class Rute
         end
 
         handler = handler_pattern[:handler]
-        environment.response.headers['Content-Type'] = handler_pattern[:content_type] if handler_pattern[:content_type]
+        environment.response.content_type = handler_pattern[:content_type] if handler_pattern[:content_type]
         break
       end
 
@@ -83,17 +91,12 @@ class Rute
     def compile!
       @error_handlers.each do |error, content_types|
         content_types.each do |content_type, route|
-          assert_route route
-          route[:handler] = Rute::Handler.new(
-              class_name: route[:class_name],
-              method: route[:method]
-          )
+          route[:handler] = Rute::HandlerFactory.build route
         end
       end
 
       @routes.each do |request_method, routes|
         routes.each do |route|
-          assert_route route
           compile_handler_pattern request_method, route
         end
       end
@@ -103,7 +106,7 @@ class Rute
       environment.response.status = exception.http_status_code
       environment.response.freeze_status!
 
-      content_type = environment.response.headers['Content-Type'] ? environment.response.headers['Content-Type'] : @configuration.default_content_type
+      content_type = environment.response.content_type ? environment.response.content_type : @configuration.default_content_type
 
       error_handler = @error_handlers[exception.class][content_type] if @error_handlers[exception.class] && @error_handlers[exception.class][content_type]
 
@@ -137,18 +140,26 @@ class Rute
 
       @handler_patterns[request_method][content_type] << {
           pattern: Regexp.new(parsable_path.join('/')),
-          handler: Rute::Handler.new(
-              class_name: route[:class_name],
-              method: route[:method]
-          ),
+          handler: Rute::HandlerFactory.build(route),
           content_type: content_type,
           defined_at: route[:defined_at],
           identifier: path_identifier
       }
     end
 
+    def assert_route_parameters class_name, method, static_file, backtrace
+      unless (class_name && method) || static_file
+        exception = ArgumentError.new('Route must specify class_name and method OR static_file')
+        exception.set_backtrace backtrace
+        raise exception
+      end
+    end
+
     def add_route request_method, route
       route[:defined_at] = caller(2, 2)
+      route[:configuration] = @configuration
+
+      assert_route_parameters route[:class_name], route[:method], route[:static_file], route[:defined_at]
 
       @routes[request_method] ||= []
       @routes[request_method] << route
@@ -179,16 +190,6 @@ class Rute
             "Path already defined at #{duplicate_route[:defined_at][0]}"
         )
         exception.set_backtrace defined_at
-        raise exception
-      end
-    end
-
-    def assert_route route
-      klass = Module.const_get(route[:class_name])
-      method = klass.instance_method(route[:method])
-      if (method.parameters & [[:req, :request], [:req, :response]]).length != 2
-        exception = ArgumentError.new("`#{route[:method]}' for class `#{route[:class_name]}' expects to receive 2 arguments: request & response")
-        exception.set_backtrace(route[:defined_at])
         raise exception
       end
     end

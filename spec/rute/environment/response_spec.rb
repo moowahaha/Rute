@@ -14,6 +14,20 @@ describe Rute::Environment::Response do
     end
   end
 
+  describe 'content_type' do
+    before do
+      @response.content_type = 'blah'
+    end
+
+    it 'should set the Content-Type header' do
+      @response.headers['Content-Type'].should == 'blah'
+    end
+
+    it 'should have an accessor' do
+      @response.content_type.should == 'blah'
+    end
+  end
+
   describe 'redirect_to' do
     before do
       @response.redirect_to 'http://www.blah.com'

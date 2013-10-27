@@ -9,5 +9,6 @@ rute.set.load_paths = ['test_classes']
 rute.on.get '/concatenate/:string1/', class_name: 'Echo', method: 'concatenate'
 rute.on.get '/unhandled_exception', class_name: 'Echo', method: 'method_that_throws_an_unhandled_exception'
 rute.on.get '/handled_exception', class_name: 'Echo', method: 'method_that_throws_an_handled_exception'
+rute.on.get '/static_file', static_file: File.join('rute_files_fixtures', 'version_1', 'static', 'some_static.txt')
 
 run rute.application

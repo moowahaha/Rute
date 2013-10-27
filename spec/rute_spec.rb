@@ -15,6 +15,28 @@ describe Rute do
     it 'should have a status code' do
       @response.status.should == 200
     end
+
+    it 'should have a content type' do
+      @response.content_type.should == 'text/html'
+    end
+  end
+
+  describe 'static routing' do
+    before do
+      @response = @helper.get('/static_file')
+    end
+
+    it 'should have a response body' do
+      @response.body.should == 'version 1'
+    end
+
+    it 'should have a status code' do
+      @response.status.should == 200
+    end
+
+    it 'should have a content type' do
+      @response.content_type.should == 'text/plain'
+    end
   end
 
   describe 'bad request' do
@@ -32,4 +54,6 @@ describe Rute do
       response.body.should == '404: Not found'
     end
   end
+
+  # TODO: static file
 end

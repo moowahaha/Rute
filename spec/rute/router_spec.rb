@@ -7,21 +7,6 @@ describe Rute::Router do
     @router = Rute::Router.new configuration
   end
 
-  it 'should route a get request' do
-    environment = Rute::Environment.new(
-        'SCRIPT_NAME' => '/reverse',
-        'HTTP_ACCEPT' => 'text/html',
-        'REQUEST_METHOD' => 'GET'
-    )
-
-    @router.get '/reverse', class_name: 'Echo', method: 'reverse'
-    @router.compile!
-
-    handler = @router.handler_for(environment)
-    handler.method.should == 'reverse'
-    handler.class_name.should == 'Echo'
-  end
-
   it 'should setup environment with request parameters' do
     @router.get '/reverse/:string_in_url', class_name: 'Echo', method: 'reverse'
     @router.compile!
@@ -42,6 +27,47 @@ describe Rute::Router do
     @router.get '/reverse/:string_in_url', class_name: 'Echo', method: 'reverse'
     @router.get '/reverse/:string_in_url', class_name: 'Echo', method: 'reverse'
     expect { @router.compile! }.to raise_error(Rute::Exception::DuplicateRoute)
+  end
+
+  describe 'invalid route parameters' do
+    it 'should throw an exception when we lack a class_name' do
+      expect { @router.get '/', method: 'blah' }.to raise_error(ArgumentError)
+    end
+
+    it 'should throw an exception when we lack a method' do
+      expect { @router.get '/', class_name: 'blah' }.to raise_error(ArgumentError)
+    end
+
+    it 'should throw an exception when we specify a static with a class_name' do
+      expect { @router.get '/', static: '', class_name: '' }.to raise_error(ArgumentError)
+    end
+
+    it 'should throw an exception when we specify a static with a method' do
+      expect { @router.get '/', static: '', method: '' }.to raise_error(ArgumentError)
+    end
+
+    it 'should throw an exception when we specify a static with a class_name and a method' do
+      expect { @router.get '/', static: '', class_name: '', method: '' }.to raise_error(ArgumentError)
+    end
+
+    it 'should throw an exception when we lack everything' do
+      expect { @router.get '/' }.to raise_error(ArgumentError)
+    end
+  end
+
+  describe 'static destinations' do
+    it 'should serve file from absolute path' do
+      static_file = File.absolute_path(__FILE__)
+      @router.get '/', static_file: static_file
+      @router.compile!
+
+      environment = Rute::Environment.new(
+          'SCRIPT_NAME' => '/',
+          'REQUEST_METHOD' => 'GET'
+      )
+
+      @router.handler_for(environment).path.should == static_file
+    end
   end
 
   describe 'content types' do
@@ -144,23 +170,6 @@ describe Rute::Router do
     end
   end
 
-  describe 'non-existent destinations' do
-    it 'should deal with a non-existent class' do
-      @router.get '/reverse', class_name: 'DoesNotExist', method: 'who_cares'
-      expect { @router.compile! }.to raise_error(NameError)
-    end
-
-    it 'should deal with a non-existent method' do
-      @router.get '/reverse', class_name: 'Echo', method: 'does_not_exist'
-      expect { @router.compile! }.to raise_error(NameError)
-    end
-
-    it 'should deal with a method does not accept 2 parameter' do
-      @router.get '/reverse', class_name: 'Echo', method: 'method_with_too_few_parameters'
-      expect { @router.compile! }.to raise_error(ArgumentError)
-    end
-  end
-
   describe 'handler_for_exception' do
     before do
       @environment = Rute::Environment.new(
@@ -210,9 +219,19 @@ describe Rute::Router do
         @handler.method.should == 'reverse'
       end
     end
+
+    it 'should support static files for errors' do
+      static_file = File.absolute_path(__FILE__)
+      @router.error Rute::HTTP::InternalServerError, static_file: static_file
+      @router.compile!
+      @router.handler_for_exception(
+          Rute::HTTP::InternalServerError.new,
+          @environment
+      ).path.should == File.absolute_path(static_file)
+    end
   end
 
   # TODO: caching rules
-  # TODO: allow routes to hit a static file (esp for error handlers)
+  # TODO: websockets
   # TODO: make the rule definition available to called code for debug purposes
 end

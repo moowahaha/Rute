@@ -11,6 +11,14 @@ class Rute
         @status_frozen = false
       end
 
+      def content_type= content_type
+        @headers['Content-Type'] = content_type
+      end
+
+      def content_type
+        @headers['Content-Type']
+      end
+
       def redirect_to path
         redirect 303, path
       end

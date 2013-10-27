@@ -17,9 +17,6 @@ class Echo
   alias_method :some_put_method, :some_get_method
   alias_method :some_delete_method, :some_get_method
 
-  def method_with_too_few_parameters wtf
-  end
-
   def method_that_throws_an_unhandled_exception request, response
     raise 'wat'
   end
