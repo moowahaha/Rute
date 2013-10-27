@@ -16,6 +16,10 @@ describe Rute::Environment::Request do
     Rute::Environment::Request.new('CONTENT_TYPE' => 'TEXT/HTML').content_type.should == 'text/html'
   end
 
+  it 'should have the full uri' do
+    Rute::Environment::Request.new('QUERY_STRING' => 'a=b', 'SCRIPT_NAME' => '/blah').uri.should == '/blah?a=b'
+  end
+
   it 'should have a request time' do
     Time.should_receive(:now).and_return('some time')
     Rute::Environment::Request.new({}).time.should == 'some time'
