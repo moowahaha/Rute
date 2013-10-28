@@ -82,7 +82,7 @@ describe Rute::Router do
           'REQUEST_METHOD' => 'GET'
       )
 
-      @router.handler_for(environment).inspectable_method.should == 'reverse_with_json'
+      @router.handler_for(environment).inspectable_method.should == :reverse_with_json
     end
 
     it 'should use a fallback when supplied' do
@@ -92,7 +92,7 @@ describe Rute::Router do
           'REQUEST_METHOD' => 'GET'
       )
 
-      @router.handler_for(environment).inspectable_method.should == 'reverse_with_anything'
+      @router.handler_for(environment).inspectable_method.should == :reverse_with_anything
     end
 
     it 'should respond with the appropriate content type' do
@@ -134,7 +134,7 @@ describe Rute::Router do
           'REQUEST_METHOD' => 'GET'
       )
 
-      @router.handler_for(environment).inspectable_method.should == 'some_get_method'
+      @router.handler_for(environment).inspectable_method.should == :some_get_method
     end
 
     it 'should post on POST request' do
@@ -144,7 +144,7 @@ describe Rute::Router do
           'REQUEST_METHOD' => 'POST'
       )
 
-      @router.handler_for(environment).inspectable_method.should == 'some_post_method'
+      @router.handler_for(environment).inspectable_method.should == :some_post_method
     end
 
     it 'should put on PUT request' do
@@ -154,7 +154,7 @@ describe Rute::Router do
           'REQUEST_METHOD' => 'PUT'
       )
 
-      @router.handler_for(environment).inspectable_method.should == 'some_put_method'
+      @router.handler_for(environment).inspectable_method.should == :some_put_method
     end
 
     it 'should delete on DELETE request' do
@@ -164,7 +164,7 @@ describe Rute::Router do
           'REQUEST_METHOD' => 'DELETE'
       )
 
-      @router.handler_for(environment).inspectable_method.should == 'some_delete_method'
+      @router.handler_for(environment).inspectable_method.should == :some_delete_method
     end
   end
 
@@ -191,7 +191,7 @@ describe Rute::Router do
       end
 
       it 'should give me a method' do
-        @handler.inspectable_method.should == 'not_found'
+        @handler.inspectable_method.should == :not_found
       end
 
       it 'should give me an immutable response status' do
@@ -214,7 +214,7 @@ describe Rute::Router do
       end
 
       it 'should give me a method' do
-        @handler.inspectable_method.should == 'reverse'
+        @handler.inspectable_method.should == :reverse
       end
     end
 

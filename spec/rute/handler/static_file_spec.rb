@@ -94,4 +94,6 @@ describe Rute::Handler::StaticFile do
       @handler.environment.response.content_type.should == 'text/html'
     end
   end
+
+  # todo: cache handling (If-Modified-Since etc)
 end
