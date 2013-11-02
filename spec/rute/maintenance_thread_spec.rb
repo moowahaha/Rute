@@ -1,7 +1,7 @@
 describe Rute::MaintenanceThread do
   describe 'run' do
-    it 'should truncate the cache'
+    it 'should vacuum the cache'
 
-    it 'should ensure the handlers are in order of popularity'
+    it 'should ensure the handlers are optimized'
   end
 end

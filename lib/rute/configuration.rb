@@ -12,7 +12,8 @@ class Rute
           mechanism: Rute::Cache::Daybreak,
           config: {
             path: File.join(Dir.tmpdir, 'rute_cache.db'),
-            wipe_on_restart: true
+            wipe_on_restart: true,
+            max_cache_entries: 512
           }
       }
     end
