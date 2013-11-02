@@ -265,6 +265,54 @@ describe Rute::Router do
     end
   end
 
+  describe 'optimize!' do
+    it 'should order by invocations' do
+      least_used_handler = double(Rute::Handler)
+      least_used_handler.should_receive(:invoked).and_return(1)
+
+      most_used_handler = double(Rute::Handler)
+      most_used_handler.should_receive(:invoked).and_return(2)
+
+      @router.handler_patterns = {get: {
+          nil => [
+              {handler: least_used_handler},
+              {handler: most_used_handler}
+          ]}
+      }
+
+      @router.optimize!
+
+      @router.handler_patterns[:get][nil].first[:handler].should == most_used_handler
+    end
+
+    it 'should order equal invocations by number of named captures' do
+          least_complex_handler = double(Rute::Handler)
+          least_complex_handler.should_receive(:invoked).and_return(1)
+
+          most_complex_handler = double(Rute::Handler)
+          most_complex_handler.should_receive(:invoked).and_return(1)
+
+          @router.handler_patterns = {
+              get: {
+                  nil => [
+                      {
+                          handler: most_complex_handler,
+                          pattern: /\/(?<first>.*)\/(?<second>.*)/
+                      },
+                      {
+                          handler: least_complex_handler,
+                          pattern: /\/(?<first>.*)\//
+                      }
+                  ]
+              }
+          }
+
+          @router.optimize!
+
+          @router.handler_patterns[:get][nil].first[:handler].should == least_complex_handler
+        end
+  end
+
   # TODO: static file trees
   # TODO: websockets
 end

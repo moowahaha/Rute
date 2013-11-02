@@ -28,6 +28,8 @@ class Rute
 
     @on.compile!
 
+    Rute::MaintenanceThread.run(@set, @on)
+
     rack_builder.run(Rute::Application.new @on)
   end
 end

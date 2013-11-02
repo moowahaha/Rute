@@ -73,6 +73,19 @@ class Rute
           compile_handler_pattern request_method, route
         end
       end
+
+      optimize!
+    end
+
+    def optimize!
+      @handler_patterns.each do |request_method, content_types|
+        content_types.each do |content_type, routes|
+          routes.sort! do |a, b|
+            comp = b[:handler].invoked <=> a[:handler].invoked
+            comp.zero? ? (a[:pattern].names.count <=> b[:pattern].names.count) : comp
+          end
+        end
+      end
     end
 
     def handler_for_exception exception, environment
@@ -96,11 +109,11 @@ class Rute
       content_type = route[:content_type].downcase if route[:content_type]
 
       path_identifier, pattern = case route[:request_path]
-        when String
-          request_path_from_string route[:request_path]
-        when Regexp
-          request_path_from_regexp route[:request_path]
-      end
+                                   when String
+                                     request_path_from_string route[:request_path]
+                                   when Regexp
+                                     request_path_from_regexp route[:request_path]
+                                 end
 
       @handler_patterns[request_method] ||= {}
       @handler_patterns[request_method][content_type] ||= []
