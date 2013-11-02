@@ -1,6 +1,26 @@
 require 'tempfile'
 
 describe Rute::Handler::StaticFile do
+  describe 'invocation count' do
+    before do
+      @handler = Rute::Handler::StaticFile.new(
+          static_file: File.absolute_path(__FILE__),
+          defined_at: ['hello']
+      )
+
+      @handler.environment = Rute::Environment.new({})
+    end
+
+    it 'should be zero to begin with' do
+      @handler.invoked.should == 0
+    end
+
+    it 'should increment' do
+      @handler.invoke!
+      @handler.invoked.should == 1
+    end
+  end
+
   describe 'absolute path' do
     it 'should barf on non-existent file in absolute path' do
       expect {

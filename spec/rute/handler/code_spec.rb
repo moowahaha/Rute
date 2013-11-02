@@ -15,13 +15,32 @@ class RuteHandlerTestClass
 end
 
 describe Rute::Handler::Code do
+  describe 'invocation count' do
+    before do
+      @handler = Rute::Handler::Code.new(
+          class: RuteHandlerTestClass,
+          method: :some_method
+      )
+
+      @handler.environment = Rute::Environment.new({})
+    end
+
+    it 'should be zero to begin with' do
+      @handler.invoked.should == 0
+    end
+
+    it 'should increment' do
+      @handler.invoke!
+      @handler.invoked.should == 1
+    end
+  end
+
   describe 'non-existent destinations' do
     it 'should deal with a non-existent class' do
       expect {
         Rute::Handler::Code.new(
             class: 'DoesNotExist',
-            method: :who_cares,
-            defined_at: ['here']
+            method: :who_cares
         )
       }.to raise_error(NameError, "Class `DoesNotExist' is not defined")
     end
@@ -30,8 +49,7 @@ describe Rute::Handler::Code do
       expect {
         Rute::Handler::Code.new(
             class: RuteHandlerTestClass,
-            method: :does_not_exist,
-            defined_at: ['here']
+            method: :does_not_exist
         )
       }.to raise_error(NameError, "Unknown instance method `does_not_exist' for class `RuteHandlerTestClass'")
     end
@@ -40,8 +58,7 @@ describe Rute::Handler::Code do
       expect {
         Rute::Handler::Code.new(
             class: RuteHandlerTestClass,
-            method: :method_with_too_few_parameters,
-            defined_at: ['here']
+            method: :method_with_too_few_parameters
         )
       }.to raise_error(ArgumentError, "`method_with_too_few_parameters' for class `RuteHandlerTestClass' expects to receive 2 arguments: request & response")
     end
@@ -56,7 +73,6 @@ describe Rute::Handler::Code do
       @handler = Rute::Handler::Code.new(
           class: RuteHandlerTestClass,
           method: :cache_test_method,
-          defined_at: ['here'],
           configuration: configuration,
           cache: true
       )

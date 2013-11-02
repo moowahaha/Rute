@@ -5,26 +5,62 @@ describe Rute::Router do
     @router = Rute::Router.new configuration
   end
 
-  it 'should setup environment with request parameters' do
-    @router.get '/reverse/:string_in_url', class: Echo, method: :reverse
-    @router.compile!
+  describe 'regex routes' do
+    it 'should setup environment with request parameters' do
+      @router.get /\/reverse\/(?<string_in_url>.*)/, class: Echo, method: :reverse
+      @router.compile!
 
-    environment = Rute::Environment.new(
-        'SCRIPT_NAME' => '/reverse/something',
-        'HTTP_ACCEPT' => 'text/html',
-        'QUERY_STRING' => 'string_in_query=somethingelse',
-        'REQUEST_METHOD' => 'GET'
-    )
+      environment = Rute::Environment.new(
+          'SCRIPT_NAME' => '/reverse/something',
+          'HTTP_ACCEPT' => 'text/html',
+          'QUERY_STRING' => 'string_in_query=somethingelse',
+          'REQUEST_METHOD' => 'GET'
+      )
 
-    @router.handler_for(environment)
-    environment.request.parameters[:string_in_url].should == 'something'
-    environment.request.parameters[:string_in_query].should == 'somethingelse'
+      @router.handler_for(environment)
+      environment.request.parameters[:string_in_url].should == 'something'
+      environment.request.parameters[:string_in_query].should == 'somethingelse'
+    end
+
+    it 'should cope with duplicate routes' do
+      @router.get /\/bob\/(?<something>.*)/, class: Echo, method: :reverse
+      @router.get /\/bob\/(?<something_else>.*)/, class: Echo, method: :reverse
+      expect { @router.compile! }.to raise_error(Rute::Exception::DuplicateRoute)
+    end
+
+    it 'should begin with a slash' do
+      @router.get /bob/, class: Echo, method: :reverse
+      expect { @router.compile! }.to raise_error(Rute::Exception::InvalidRoute)
+    end
   end
 
-  it 'should cope with duplicate routes' do
-    @router.get '/reverse/:string_in_url', class: Echo, method: :reverse
-    @router.get '/reverse/:string_in_url', class: Echo, method: :reverse
-    expect { @router.compile! }.to raise_error(Rute::Exception::DuplicateRoute)
+  describe 'string routes' do
+    it 'should setup environment with request parameters' do
+      @router.get '/reverse/:string_in_url', class: Echo, method: :reverse
+      @router.compile!
+
+      environment = Rute::Environment.new(
+          'SCRIPT_NAME' => '/reverse/something',
+          'HTTP_ACCEPT' => 'text/html',
+          'QUERY_STRING' => 'string_in_query=somethingelse',
+          'REQUEST_METHOD' => 'GET'
+      )
+
+      @router.handler_for(environment)
+      environment.request.parameters[:string_in_url].should == 'something'
+      environment.request.parameters[:string_in_query].should == 'somethingelse'
+    end
+
+    it 'should cope with duplicate routes' do
+      @router.get '/reverse/:string_in_url', class: Echo, method: :reverse
+      @router.get '/reverse/:string_in_url', class: Echo, method: :reverse
+      expect { @router.compile! }.to raise_error(Rute::Exception::DuplicateRoute)
+    end
+
+    it 'should begin with a slash' do
+      @router.get 'bob', class: Echo, method: :reverse
+      expect { @router.compile! }.to raise_error(Rute::Exception::InvalidRoute)
+    end
   end
 
   describe 'invalid route parameters' do

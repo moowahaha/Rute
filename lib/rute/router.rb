@@ -1,5 +1,7 @@
 class Rute
   class Router
+    attr_accessor :handler_patterns
+
     def initialize configuration
       @configuration = configuration
       @handler_patterns = {}
@@ -93,10 +95,32 @@ class Rute
     def compile_handler_pattern(request_method, route)
       content_type = route[:content_type].downcase if route[:content_type]
 
-      # TODO: detect duplicate patterns
+      path_identifier, pattern = case route[:request_path]
+        when String
+          request_path_from_string route[:request_path]
+        when Regexp
+          request_path_from_regexp route[:request_path]
+      end
+
+      @handler_patterns[request_method] ||= {}
+      @handler_patterns[request_method][content_type] ||= []
+
+      validate_pattern! pattern, route[:defined_at]
+      check_for_duplicate! @handler_patterns[request_method][content_type], route[:defined_at], path_identifier
+
+      @handler_patterns[request_method][content_type] << {
+          pattern: pattern,
+          handler: Rute::HandlerFactory.build(route),
+          content_type: content_type,
+          defined_at: route[:defined_at],
+          identifier: path_identifier
+      }
+    end
+
+    def request_path_from_string request_path
       parsable_path = []
       path_identifier = []
-      clean_path(route[:request_path]).split('/').each do |part|
+      clean_path(request_path).split('/').each do |part|
         parsable_part = part.index(':') == 0 ? part_to_regexp(part.sub(/^:/, '')) : part
         identifiable_part = part.index(':') == 0 ? ':PARAMETER' : part
 
@@ -104,18 +128,17 @@ class Rute
         path_identifier << identifiable_part
       end
 
-      @handler_patterns[request_method] ||= {}
-      @handler_patterns[request_method][content_type] ||= []
+      pattern = Regexp.new(parsable_path.join('/'))
+      return path_identifier, pattern
+    end
 
-      check_for_duplicate! @handler_patterns[request_method][content_type], route[:defined_at], path_identifier
+    def request_path_from_regexp request_path
+      request_path_string = request_path.to_s
+      request_path.names.each do |name|
+        request_path_string.gsub!("<#{name}>", '<PARAMETER>')
+      end
 
-      @handler_patterns[request_method][content_type] << {
-          pattern: Regexp.new(parsable_path.join('/')),
-          handler: Rute::HandlerFactory.build(route),
-          content_type: content_type,
-          defined_at: route[:defined_at],
-          identifier: path_identifier
-      }
+      return request_path_string, request_path
     end
 
     def assert_route_parameters route
@@ -155,6 +178,16 @@ class Rute
 
     def clean_path path
       path.gsub(/\/$/, '')
+    end
+
+    def validate_pattern! pattern, defined_at
+      unless pattern.source =~ /^\// || pattern.source == ''
+        exception = Rute::Exception::InvalidRoute.new(
+            "Route pattern must begin with a '/'"
+        )
+        exception.set_backtrace defined_at
+        raise exception
+      end
     end
 
     def check_for_duplicate! previous, defined_at, identifier
