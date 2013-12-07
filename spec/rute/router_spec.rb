@@ -63,6 +63,32 @@ describe Rute::Router do
     end
   end
 
+  describe 'accepted_parameters' do
+    it 'should throw an exception if it is not an array' do
+      expect {
+        @router.get '/', class: Echo, method: :reverse, accepted_parameters: 'wat'
+      }.to raise_error(ArgumentError, 'accepted_parameters must be type of Array')
+    end
+
+    it 'should throw exception when attempting to access unexpected parameters' do
+      @router.get '/blah', class: Echo, method: :reverse, accepted_parameters: [:name]
+      @router.compile!
+
+      environment = Rute::Environment.new(
+          'SCRIPT_NAME' => '/blah',
+          'HTTP_ACCEPT' => 'text/html',
+          'QUERY_STRING' => 'name=something&ignored=somethingelse',
+          'REQUEST_METHOD' => 'GET'
+      )
+
+      @router.handler_for(environment)
+      environment.request.parameters[:name].should == 'something'
+      expect {
+        environment.request.parameters[:ignored]
+      }.to raise_error(Rute::Exception::ParameterNotAccepted, "Parameter `ignored' does not exist in the list of accepted_parameters")
+    end
+  end
+
   describe 'invalid route parameters' do
     it 'should throw an exception when we lack a class' do
       expect { @router.get '/', method: :blah }.to raise_error(ArgumentError)
@@ -286,31 +312,31 @@ describe Rute::Router do
     end
 
     it 'should order equal invocations by number of named captures' do
-          least_complex_handler = double(Rute::Handler)
-          least_complex_handler.should_receive(:invoked).and_return(1)
+      least_complex_handler = double(Rute::Handler)
+      least_complex_handler.should_receive(:invoked).and_return(1)
 
-          most_complex_handler = double(Rute::Handler)
-          most_complex_handler.should_receive(:invoked).and_return(1)
+      most_complex_handler = double(Rute::Handler)
+      most_complex_handler.should_receive(:invoked).and_return(1)
 
-          @router.handler_patterns = {
-              get: {
-                  nil => [
-                      {
-                          handler: most_complex_handler,
-                          pattern: /\/(?<first>.*)\/(?<second>.*)/
-                      },
-                      {
-                          handler: least_complex_handler,
-                          pattern: /\/(?<first>.*)\//
-                      }
-                  ]
-              }
+      @router.handler_patterns = {
+          get: {
+              nil => [
+                  {
+                      handler: most_complex_handler,
+                      pattern: /\/(?<first>.*)\/(?<second>.*)/
+                  },
+                  {
+                      handler: least_complex_handler,
+                      pattern: /\/(?<first>.*)\//
+                  }
+              ]
           }
+      }
 
-          @router.optimize!
+      @router.optimize!
 
-          @router.handler_patterns[:get][nil].first[:handler].should == least_complex_handler
-        end
+      @router.handler_patterns[:get][nil].first[:handler].should == least_complex_handler
+    end
   end
 
   # TODO: static file trees

@@ -46,8 +46,10 @@ class Rute
       candidate_handlers_for(request).each do |handler_pattern|
         match_data = handler_pattern[:pattern].match(path) || next
 
+        request.parameters.accepted = handler_pattern[:accepted_parameters]
+
         match_data.names.each_with_index do |name, index|
-          request.parameters[name.to_sym] = URI.unescape(match_data.captures[index])
+          request.parameters[name] = URI.unescape(match_data.captures[index]) if handler_pattern[:accepted_parameters].nil? || handler_pattern[:accepted_parameters][name.to_sym]
         end
 
         handler = handler_pattern[:handler]
@@ -126,7 +128,8 @@ class Rute
           handler: Rute::HandlerFactory.build(route),
           content_type: content_type,
           defined_at: route[:defined_at],
-          identifier: path_identifier
+          identifier: path_identifier,
+          accepted_parameters: route[:accepted_parameters]
       }
     end
 
@@ -155,14 +158,23 @@ class Rute
     end
 
     def assert_route_parameters route
-      raise_argument_exception_for route if route[:class] && route[:static_file]
-      raise_argument_exception_for route if route[:method] && route[:static_file]
-      raise_argument_exception_for route if route[:class] && !route[:method]
-      raise_argument_exception_for route if !route[:class] && route[:method]
+      raise_accepted_parameter_exception_for route if route[:accepted_parameters] && !route[:accepted_parameters].is_a?(Array)
+      raise_destination_exception_for route if route[:class] && route[:static_file]
+      raise_destination_exception_for route if route[:method] && route[:static_file]
+      raise_destination_exception_for route if route[:class] && !route[:method]
+      raise_destination_exception_for route if !route[:class] && route[:method]
     end
 
-    def raise_argument_exception_for route
-      exception = ArgumentError.new('Route must specify class and method OR static_file')
+    def raise_accepted_parameter_exception_for route
+      raise_route_argument_exception route, 'accepted_parameters must be type of Array'
+    end
+
+    def raise_destination_exception_for route
+      raise_route_argument_exception route, 'Route must specify class and method OR static_file'
+    end
+
+    def raise_route_argument_exception route, message
+      exception = ArgumentError.new(message)
       exception.set_backtrace route[:defined_at]
       raise exception
     end
