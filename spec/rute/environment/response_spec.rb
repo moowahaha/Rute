@@ -1,6 +1,13 @@
 describe Rute::Environment::Response do
   before do
+    Time.should_receive(:now).and_return('123')
     @response = Rute::Environment::Response.new
+  end
+
+  describe 'initialized_at' do
+    it 'should be set' do
+      @response.initialized_at.should == '123'
+    end
   end
 
   describe 'status' do

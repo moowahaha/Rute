@@ -2,13 +2,14 @@ class Rute
   class Environment
     class Response
       attr_accessor :body, :status
-      attr_reader :headers
+      attr_reader :headers, :initialized_at
 
       def initialize
         @status = 200
         @headers = {}
         @body = ''
         @status_frozen = false
+        @initialized_at = Time.now
       end
 
       def content_type= content_type
